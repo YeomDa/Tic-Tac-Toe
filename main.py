@@ -4,14 +4,15 @@
 
 from tkinter import *
 import numpy as np
+import pygame
 
 size_of_board = 600
 symbol_size = (size_of_board / 3 - size_of_board / 8) / 2
 symbol_thickness = 50
-symbol_X_color = '#EE4035'
-symbol_O_color = '#0492CF'
+symbol_X_color = '#000000'
+symbol_O_color = '#ffffff'
 Green_color = '#7BC043'
-
+symbol_recent = '#7df924'
 
 class Tic_Tac_Toe():
     # ------------------------------------------------------------------
@@ -20,7 +21,7 @@ class Tic_Tac_Toe():
     def __init__(self):
         self.window = Tk()
         self.window.title('Tic-Tac-Toe')
-        self.canvas = Canvas(self.window, width=size_of_board, height=size_of_board)
+        self.canvas = Canvas(self.window, width=size_of_board, height=size_of_board+50)
         self.canvas.pack()
         # Input from user in form of clicks
         self.window.bind('<Button-1>', self.click)
@@ -47,7 +48,7 @@ class Tic_Tac_Toe():
         for i in range(2):
             self.canvas.create_line((i + 1) * size_of_board / 3, 0, (i + 1) * size_of_board / 3, size_of_board)
 
-        for i in range(2):
+        for i in range(3):
             self.canvas.create_line(0, (i + 1) * size_of_board / 3, size_of_board, (i + 1) * size_of_board / 3)
 
     def play_again(self):
@@ -66,18 +67,30 @@ class Tic_Tac_Toe():
         # logical_position = grid value on the board
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
-        self.canvas.create_oval(grid_position[0] - symbol_size, grid_position[1] - symbol_size,
-                                grid_position[0] + symbol_size, grid_position[1] + symbol_size, width=symbol_thickness,
-                                outline=symbol_O_color)
+        self.canvas.delete('recent')
+        self.canvas.create_oval(grid_position[0] - symbol_size - 20, grid_position[1] - symbol_size - 20,
+                                grid_position[0] + symbol_size + 20, grid_position[1] + symbol_size+ 20, width=2,
+                                outline=symbol_X_color, fill=symbol_O_color)
+        self.canvas.create_oval(grid_position[0] - 5, grid_position[1] - 5,
+                                grid_position[0] + 5, grid_position[1] + 5,
+                                outline=symbol_recent, fill=symbol_recent,tags='recent' )
 
     def draw_X(self, logical_position):
         grid_position = self.convert_logical_to_grid_position(logical_position)
-        self.canvas.create_line(grid_position[0] - symbol_size, grid_position[1] - symbol_size,
-                                grid_position[0] + symbol_size, grid_position[1] + symbol_size, width=symbol_thickness,
-                                fill=symbol_X_color)
-        self.canvas.create_line(grid_position[0] - symbol_size, grid_position[1] + symbol_size,
-                                grid_position[0] + symbol_size, grid_position[1] - symbol_size, width=symbol_thickness,
-                                fill=symbol_X_color)
+        # self.canvas.create_line(grid_position[0] - symbol_size, grid_position[1] - symbol_size,
+        #                         grid_position[0] + symbol_size, grid_position[1] + symbol_size, width=symbol_thickness,
+        #                         fill=symbol_X_color)
+        # self.canvas.create_line(grid_position[0] - symbol_size, grid_position[1] + symbol_size,
+        #                         grid_position[0] + symbol_size, grid_position[1] - symbol_size, width=symbol_thickness,
+        #                         fill=symbol_X_color)
+        self.canvas.delete('recent')
+
+        self.canvas.create_oval(grid_position[0] - symbol_size - 20, grid_position[1] - symbol_size - 20,
+                                grid_position[0] + symbol_size + 20, grid_position[1] + symbol_size+ 20, width=4,
+                                outline=symbol_X_color, fill=symbol_X_color)
+        self.canvas.create_oval(grid_position[0] - 5, grid_position[1] - 5,
+                                grid_position[0] + 5, grid_position[1] + 5,
+                                outline=symbol_recent, fill=symbol_recent,tags='recent' )                
 
     def display_gameover(self):
 
@@ -180,13 +193,15 @@ class Tic_Tac_Toe():
 
         return gameover
 
-
-
+    
+    
 
 
     def click(self, event):
         grid_position = [event.x, event.y]
         logical_position = self.convert_grid_to_logical_position(grid_position)
+        black = self.canvas.create_text(300, 630, text = "", font = ("나눔고딕코딩", 20), fill = "blue", tags='black')
+        white = self.canvas.create_text(300, 630, text = "", font = ("나눔고딕코딩", 20), fill = "blue", tags='white')
 
         if not self.reset_board:
             if self.player_X_turns:
@@ -194,11 +209,16 @@ class Tic_Tac_Toe():
                     self.draw_X(logical_position)
                     self.board_status[logical_position[0]][logical_position[1]] = -1
                     self.player_X_turns = not self.player_X_turns
+                    self.canvas.delete('black')
+                    self.canvas.itemconfig(white, text="흰 돌 차례입니다.")
+                    
             else:
                 if not self.is_grid_occupied(logical_position):
                     self.draw_O(logical_position)
                     self.board_status[logical_position[0]][logical_position[1]] = 1
                     self.player_X_turns = not self.player_X_turns
+                    self.canvas.delete('white')
+                    self.canvas.itemconfig(black, text="검은 돌 차례입니다.")
 
             # Check if game is concluded
             if self.is_gameover():
