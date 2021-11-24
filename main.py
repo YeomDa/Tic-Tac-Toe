@@ -5,6 +5,7 @@
 from tkinter import *
 import numpy as np
 import pygame
+import winsound
 
 size_of_board = 600
 symbol_size = (size_of_board / 3 - size_of_board / 8) / 2
@@ -206,6 +207,7 @@ class Tic_Tac_Toe():
         if not self.reset_board:
             if self.player_X_turns:
                 if not self.is_grid_occupied(logical_position):
+                    winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                     self.draw_X(logical_position)
                     self.board_status[logical_position[0]][logical_position[1]] = -1
                     self.player_X_turns = not self.player_X_turns
@@ -214,6 +216,7 @@ class Tic_Tac_Toe():
                     
             else:
                 if not self.is_grid_occupied(logical_position):
+                    winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                     self.draw_O(logical_position)
                     self.board_status[logical_position[0]][logical_position[1]] = 1
                     self.player_X_turns = not self.player_X_turns
