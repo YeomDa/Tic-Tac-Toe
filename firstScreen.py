@@ -43,8 +43,13 @@ class Login() :
             print('이메일 또는 비밀번호를 입력해주세요.')
             return
 
-        user = auth.get_user_by_email(input_email)
-        print('로그인이 완료되었습니다.')
+        try :
+            user = auth.get_user_by_email(input_email)
+        except :
+            print('로그인에 실패하였습니다.')
+            return
+        
+        print('\n로그인 성공!')
         print('이메일 :', user.email)
         print('UID :', user.uid)
         print('닉네임 :', user.display_name)

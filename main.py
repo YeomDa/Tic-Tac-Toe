@@ -21,7 +21,7 @@ class Tic_Tac_Toe():
     # ------------------------------------------------------------------
     def __init__(self, user):
         #로그인 해서 불러온 플레이어 정보 출력 테스트
-        print('게임이 실행되었습니다.')
+        print('\n게임이 실행되었습니다.')
         self.user = user
         print('유저 이메일 :', user.email)
         print('유저 UID :', user.uid)
