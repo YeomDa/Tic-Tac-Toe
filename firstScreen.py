@@ -5,7 +5,9 @@ from firebase_admin import credentials, auth
 import main
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
-default_app = firebase_admin.initialize_app(cred)
+default_app = firebase_admin.initialize_app(cred, {
+    'databaseURL' : 'https://opensw-team1-default-rtdb.asia-southeast1.firebasedatabase.app/'
+})
 
 class Login() :
     def __init__(self) :
@@ -55,7 +57,7 @@ class Login() :
         print('닉네임 :', user.display_name)
 
         self.loginWindow.destroy()
-        game_instance = main.Tic_Tac_Toe(user=user)
+        game_instance = main.Tic_Tac_Toe(user=user, default_app=default_app)
         game_instance.mainloop()
         
     

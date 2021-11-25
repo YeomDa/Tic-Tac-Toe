@@ -6,6 +6,8 @@ from tkinter import *
 import numpy as np
 import pygame
 import winsound
+import firebase_admin
+from firebase_admin import credentials, auth, db
 
 size_of_board = 600
 symbol_size = (size_of_board / 3 - size_of_board / 8) / 2
@@ -19,13 +21,18 @@ class Tic_Tac_Toe():
     # ------------------------------------------------------------------
     # Initialization Functions:
     # ------------------------------------------------------------------
-    def __init__(self, user):
+    def __init__(self, user, default_app):
         #로그인 해서 불러온 플레이어 정보 출력 테스트
+        
+        self.default_app = default_app
         print('\n게임이 실행되었습니다.')
         self.user = user
         print('유저 이메일 :', user.email)
         print('유저 UID :', user.uid)
         print('유저 닉네임 :', user.display_name)
+        ref = db.reference(user.uid).child('play_game_count')
+        self.play_game_count = ref.get()
+        print('지금까지의 게임 플레이 수 :', self.play_game_count)
 
         self.window = Tk()
         self.window.title('Tic-Tac-Toe')
@@ -193,15 +200,22 @@ class Tic_Tac_Toe():
         gameover = self.X_wins or self.O_wins or self.tie
 
         if self.X_wins:
+            self.increase_user_score()
             print('X wins')
         if self.O_wins:
+            self.increase_user_score()
             print('O wins')
         if self.tie:
+            self.increase_user_score()
             print('Its a tie')
 
         return gameover
 
-    
+    def increase_user_score(self) :
+        self.play_game_count += 1
+        ref = db.reference(self.user.uid)
+        ref.update({'play_game_count' : self.play_game_count})
+
     
 
 
