@@ -19,7 +19,14 @@ class Tic_Tac_Toe():
     # ------------------------------------------------------------------
     # Initialization Functions:
     # ------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, user):
+        #로그인 해서 불러온 플레이어 정보 출력 테스트
+        print('게임이 실행되었습니다.')
+        self.user = user
+        print('유저 이메일 :', user.email)
+        print('유저 UID :', user.uid)
+        print('유저 닉네임 :', user.display_name)
+
         self.window = Tk()
         self.window.title('Tic-Tac-Toe')
         self.canvas = Canvas(self.window, width=size_of_board, height=size_of_board+50)
@@ -231,7 +238,3 @@ class Tic_Tac_Toe():
             self.canvas.delete("all")
             self.play_again()
             self.reset_board = False
-
-
-game_instance = Tic_Tac_Toe()
-game_instance.mainloop()
