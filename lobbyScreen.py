@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter
 import firebase_admin
+import networkScreen
 
 class Lobby() :
     def __init__(self, user) :
@@ -37,8 +38,9 @@ class Lobby() :
     def select_mode(self, mode) :
         if mode == 'network_3' :
             print('network_3 모드를 선택하였습니다.')
-            #self.lobbyWindow.destroy() #로비 화면을 끄고,
-            #() -> 게임 시작 화면 또는 네트워크 연결 화면을 실행하면 됩니다.
+            self.lobbyWindow.destroy() #로비 화면 종료
+            network_screen = networkScreen.Network(self.user, mode)
+            network_screen.run()
 
         elif mode == 'network_5' :
             print('network_5 모드를 선택하였습니다.')

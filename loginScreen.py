@@ -2,7 +2,7 @@ from tkinter import *
 import tkinter
 import firebase_admin
 from firebase_admin import credentials, auth
-import choiceScreen
+import networkScreen
 import lobbyScreen
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
