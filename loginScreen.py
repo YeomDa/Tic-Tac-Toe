@@ -3,7 +3,7 @@ import tkinter
 import firebase_admin
 from firebase_admin import credentials, auth
 import choiceScreen
-import main
+import lobbyScreen
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
 default_app = firebase_admin.initialize_app(cred, {
@@ -14,19 +14,19 @@ class Login() :
     def __init__(self) :
         self.loginWindow = Tk()
         self.loginWindow.title('로그인 및 회원가입')
-        #self.loginWindow.geometry('300x100')
+        self.loginWindow.geometry('250x150')
 
         self.label_info = Label(self.loginWindow, text='로그인', font=('돋음', 10))
         self.label_info.grid(columnspan= 2, row = 0)
 
         self.label_email = Label(self.loginWindow, text='Email', font=('돋음', 10))
         self.label_email.grid(column = 0, row = 1)
-        self.entry_email = Entry(self.loginWindow, width = 30)
+        self.entry_email = Entry(self.loginWindow, width = 25)
         self.entry_email.grid(column = 1, row = 1)
 
         self.label_pwd = Label(self.loginWindow, text='PW', font=('돋음', 10)) 
         self.label_pwd.grid(column = 0, row = 2)
-        self.entry_pwd = Entry(self.loginWindow, width = 30)
+        self.entry_pwd = Entry(self.loginWindow, width = 25)
         self.entry_pwd.grid(column = 1, row = 2)
 
         self.button_login = Button(self.loginWindow, text='로그인', bg='blue', fg='white', command=self.login)
@@ -59,8 +59,9 @@ class Login() :
 
         self.loginWindow.destroy()
         
-        #게임 실행 코드가 들어가야 하는 곳
-
+        #로비 화면 실행
+        lobby = lobbyScreen.Lobby(user)
+        lobby.mainloop()
 
         #성현님 서버 접속
         #next_page = choiceScreen.Choice(user=user,default_app=default_app)
