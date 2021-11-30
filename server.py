@@ -44,7 +44,7 @@ class ChatClient:
 
 #서버에게 보여지는 화면
 class ChatServer:
-    HOST = '127.0.0.1'  
+    HOST = '192.168.56.1'
     PORT = 9999
 
     def __init__(self):

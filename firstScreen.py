@@ -58,10 +58,13 @@ class Login() :
         print('닉네임 :', user.display_name)
 
         self.loginWindow.destroy()
-        next_page = choiceScreen.Choice(user=user,default_app=default_app)
-        next_page.run()
-        game_instance = main.Tic_Tac_Toe(user=user, default_app=default_app)
-        #game_instance.mainloop()
+        
+        #게임 실행 코드가 들어가야 하는 곳
+
+
+        #성현님 서버 접속
+        #next_page = choiceScreen.Choice(user=user,default_app=default_app)
+        #next_page.run()
     
     def register(self) :
         input_email = self.entry_reg_email.get()

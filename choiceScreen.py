@@ -7,7 +7,7 @@ from firebase_admin import credentials, auth, db
 import main
 
 class Choice():
-    HOST = '127.0.0.1'
+    HOST = '192.168.56.1'
     PORT = 9999
 
     def __init__(self, user, default_app):
