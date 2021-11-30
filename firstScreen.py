@@ -2,6 +2,7 @@ from tkinter import *
 import tkinter
 import firebase_admin
 from firebase_admin import credentials, auth
+import choiceScreen
 import main
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
@@ -57,9 +58,10 @@ class Login() :
         print('닉네임 :', user.display_name)
 
         self.loginWindow.destroy()
+        next_page = choiceScreen.Choice(user=user,default_app=default_app)
+        next_page.run()
         game_instance = main.Tic_Tac_Toe(user=user, default_app=default_app)
-        game_instance.mainloop()
-        
+        #game_instance.mainloop()
     
     def register(self) :
         input_email = self.entry_reg_email.get()
