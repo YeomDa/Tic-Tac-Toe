@@ -549,8 +549,6 @@ class Tic_Tac_Toe(object):
         self.save_logical(logical_position)
         #self.save_logical_list(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
-        print(grid_position[0] - symbol_size)
-        print(grid_position[1] - symbol_size)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
