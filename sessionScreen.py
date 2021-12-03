@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import *
+import threading
 
 from firebase_admin import firestore
 
@@ -8,18 +9,19 @@ class Session :
         self.sessionWindow = Tk()
 
         self.user = user
+        self.db = firestore.client()
 
         if(isHost) :
             self.host_name = user.display_name
             self.is_guest_join = False
-
+            self.guest_name = None
+            self.guest_uid = None
         else :
-            db = firestore.client()
-            db_ref = db.collection(u'game_server').document(u'sessions').collection(title).document(u'users')
+            db_ref = self.db.collection(u'game_server').document(u'sessions').collection(title).document(u'users')
             self.host_name = db_ref.get().to_dict()['HOST']
             self.host_uid = db_ref.get().to_dict()['HOST_UID']
             db_ref.set({
-                u'GUSET' : self.user.display_name,
+                u'GUEST' : self.user.display_name,
                 u'GUEST_UID' : self.user.uid
             }, merge=True)
 
@@ -33,10 +35,26 @@ class Session :
         self.label_guest.grid(row=0, column=1)
         
         if(isHost) :
-            self.label_host_name = Label(self.sessionWindow, text='기다리는 중..')
+            self.label_guest_name = Label(self.sessionWindow, text='기다리는 중..')
+            
+            self.callback_done = threading.Event()
+        
+            def on_snapshot(doc_snapshot, changes, read_time):
+                for doc in doc_snapshot:
+                    list = doc.to_dict()
+                    self.is_guest_join = True
+                    self.guest_name = list.get('GUEST')
+                    self.guest_uid = list.get('GUEST_UID')
+                    if(self.guest_name != None) :
+                        self.label_guest_name.configure(text=self.guest_name)
+                self.callback_done.set()
+
+            doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(title).document(u'users')
+            doc_watch = doc_ref.on_snapshot(on_snapshot)
+       
         else :
-            self.label_host_name = Label(self.sessionWindow, text=self.user.display_name)
-        self.label_host_name.grid(row=1, column=1)
+            self.label_guest_name = Label(self.sessionWindow, text=self.user.display_name)
+        self.label_guest_name.grid(row=1, column=1)
 
         if(isHost) :
             self.button_game_start = Button(self.sessionWindow, text='게임시작', command=self.game_start)

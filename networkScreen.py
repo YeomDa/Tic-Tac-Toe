@@ -29,20 +29,7 @@ class Network():
             print(f'Document data: {doc.to_dict()}')
         else:
             print(u'No such document!')
-
-        '''
-        callback_done = threading.Event()
-        
-        def on_snapshot(doc_snapshot, changes, read_time):
-            for doc in doc_snapshot:
-                print(f'Received document snapshot: {doc.to_dict()}')
-            callback_done.set()
-
-        doc_watch = doc_ref.on_snapshot(on_snapshot)
-        '''
-
-    
-
+            
     def setWindow(self):
         self.networkWindow = Tk()
         self.networkWindow.title('게임 선택 창')
