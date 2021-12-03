@@ -43,6 +43,7 @@ game=1
 fps = 60
 fps_clock = pygame.time.Clock()
 game=False
+network_game_title = None
 
 def main():
     pygame.init()
@@ -56,6 +57,19 @@ def main():
     while True:
         run_game(surface, play_game, menu)
         menu.is_continue(play_game)
+    
+def main(title):
+    network_game_title = title
+    pygame.init()
+    surface = pygame.display.set_mode((window_width, window_height))
+    pygame.display.set_caption("N-mok game")
+    surface.fill(bg_color)
+
+    play_game = Tic_Tac_Toe(surface)
+
+    menu = Menu(surface)
+    while True:
+        run_game(surface, play_game, menu)
 
 def run_game(surface, game, menu):
     game.init_game()
@@ -374,19 +388,6 @@ class Tic_Tac_Toe(object):
     # ------------------------------------------------------------------
 
     def __init__(self, surface):
-        #로그인 해서 불러온 플레이어 정보 출력 테스트\
-        '''
-        self.default_app = default_app
-        print('\n게임이 실행되었습니다.')
-        self.user = user
-        print('유저 이메일 :', user.email)
-        print('유저 UID :', user.uid)
-        print('유저 닉네임 :', user.display_name)
-        ref = db.reference(user.uid).child('play_game_count')
-        self.play_game_count = ref.get()
-        print('지금까지의 게임 플레이 수 :', self.play_game_count)
-        '''
-
         self.board = [[0 for i in range(board_size)] for j in range(board_size)]
         self.menu = Menu(surface)
         self.rule = Rule(self.board)
@@ -406,9 +407,6 @@ class Tic_Tac_Toe(object):
         self.X_score = 0
         self.O_score = 0
         self.tie_score = 0
-
-    def __init__ (self, surface, socket) :
-        
 
     def init_game(self):
         self.turn  = black_stone
@@ -455,10 +453,6 @@ class Tic_Tac_Toe(object):
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-
-    def draw_O(self, logical_position, socket) :
-        #서버 통신 기능이 포함된 착수 기능
-        return
 
     def draw_X(self, logical_position):
         grid_position = self.convert_logical_to_grid_position(logical_position)
@@ -569,13 +563,6 @@ class Tic_Tac_Toe(object):
             print('Its a tie')
 
         return gameover
-
-    '''
-    def increase_user_score(self) :
-        self.play_game_count += 1
-        ref = db.reference(self.user.uid)
-        ref.update({'play_game_count' : self.play_game_count})
-    '''
 
     def time_over(self):
         if self.player_X_turns==True:

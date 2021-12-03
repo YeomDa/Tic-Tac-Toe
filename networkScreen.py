@@ -64,7 +64,7 @@ class Network():
         self.networkWindow.mainloop()
     
     def create_room(self, title, uid):
-        print('방생성 :', title)
+        print('방 생성 :', title)
         #firebase의 데이터는 key-value형태로 저장됩니다.
         data = {
             u'HOST' : title,
@@ -72,6 +72,9 @@ class Network():
         }
         #해당 경로에 데이터를 .set 합니다.
         self.db.collection(u'game_server').document('sessions').collection(title).document('users').set(data)
+        self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').set({
+            u'is_game_start' : False
+        }, merge=True)
 
         self.networkWindow.destroy() #로비 화면 종료
         session_screen = sessionScreen.Session(self.user, title, True)
