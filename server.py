@@ -1,4 +1,11 @@
 import socket, threading
+import firebase_admin
+from firebase_admin import credentials, auth, db
+
+cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
+default_app = firebase_admin.initialize_app(cred, {
+    'databaseURL' : 'https://opensw-team1-default-rtdb.asia-southeast1.firebasedatabase.app/'
+})
 
 class Room:
     def __init__(self):
@@ -44,12 +51,29 @@ class ChatClient:
 
 #서버에게 보여지는 화면
 class ChatServer:
-    HOST = '192.168.56.1'
+    HOST = socket.gethostbyname(socket.gethostname())
     PORT = 9999
+    is_another_server_online = False
 
     def __init__(self):
+        if(db.reference('server_info').child('is_server_open').get() == 'True') :
+            print('서버가 이미 열려있습니다.')
+            self.is_another_server_online = True
+            return
+        
+
+        db.reference('server_info').child('current_server_ip').set(self.HOST)
+        db.reference('server_info').child('is_server_open').set('True')
+
         self.server_soc = None  
         self.room = Room()
+
+        self.run()
+    
+    def __del__(self):
+        #다른 호스트가 서버를 열었다면, 서버 상태를 offline으로 바꾸지 않고 종료합니다.
+        if(self.is_another_server_online != True) :
+            db.reference('server_info').child('is_server_open').set('False')
 
     def open(self):
         self.server_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,7 +98,6 @@ class ChatServer:
 
 
 def main():
-    cs = ChatServer()
-    cs.run()
+    ChatServer()
 
 main()
