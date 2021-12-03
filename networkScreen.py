@@ -5,6 +5,7 @@ from winsound import PlaySound
 import firebase_admin
 from firebase_admin import credentials, auth, db
 import main
+import socket
 
 class Network():
     #HOST = ''
@@ -18,6 +19,7 @@ class Network():
         self.myChat = None
         self.sendBtn = None
         self.allChat =''
+        self.myip = socket.gethostbyname(socket.gethostname())
 
         #self.default_app = default_app
         print('\n네트워크 설정 화면 진입.')
@@ -41,29 +43,32 @@ class Network():
         self.label_info = Label(self.networkWindow, text='네트워크 설정 화면')
         self.label_info.grid(row=0, columnspan=3)
 
+        self.label_myip = Label(self.networkWindow, text='나의 ip :' + self.myip)
+        self.label_myip.grid(row=1, columnspan=3)
+
         self.label_ip = Label(self.networkWindow, text='상대방의 ip를 입력해주세요.', textvariable='center')
-        self.label_ip.grid(row=1, columnspan=3)
+        self.label_ip.grid(row=2, columnspan=3)
 
         self.entry_ip = Entry(self.networkWindow, width=25)
-        self.entry_ip.grid(row=2, column=0, columnspan=2)
+        self.entry_ip.grid(row=3, column=0, columnspan=2)
 
         self.button_connect = Button(self.networkWindow, text='연결', command= lambda: self.conn(self.entry_ip.get()))
-        self.button_connect.grid(row=2, column=2)
+        self.button_connect.grid(row=3, column=2)
 
         self.label_my_total = Label(self.networkWindow, text='나의 전적')
-        self.label_my_total.grid(row=3, column=0)
+        self.label_my_total.grid(row=4, column=0)
 
         self.label_enemy_total = Label(self.networkWindow, text='상대의 전적')
-        self.label_enemy_total.grid(row=3, column=1)
+        self.label_enemy_total.grid(row=4, column=1)
 
         self.label_my_total_play = Label(self.networkWindow, text='플레이 수 :' + str(self.play_game_count))
-        self.label_my_total_play.grid(row=4, column=0)
+        self.label_my_total_play.grid(row=5, column=0)
 
         self.label_enemy_total_play = Label(self.networkWindow, text='플레이 수 : 임시')
-        self.label_enemy_total_play.grid(row=4, column=1)
+        self.label_enemy_total_play.grid(row=5, column=1)
 
         self.button_game_start = Button(self.networkWindow, text='게임 시작', bg='blue', fg='white',command=self.game_start)
-        self.button_game_start.grid(row=5,columnspan=3)
+        self.button_game_start.grid(row=6,columnspan=3)
 
         #self.myChat.bind('<Return>', self.sendMsg)
 
