@@ -1,12 +1,10 @@
 import threading
 import socket
 from tkinter import *
-from winsound import PlaySound
-import firebase_admin
-from firebase_admin import credentials, auth, db
-import main
+from firebase_admin import db
 import socket
 import datetime
+import pickle
 
 class Network():
     #HOST = ''
@@ -15,7 +13,7 @@ class Network():
     def __init__(self, user, mode):
         self.user = user
         self.mode = mode
-        self.conn_soc = None
+        self.my_socket = None
         self.chatCont = None
         self.myChat = None
         self.sendBtn = None
@@ -41,10 +39,14 @@ class Network():
         print('게임 서버에 연결을 시도합니다. :', server_ip, ':', Network.PORT)
         self.append_log('게임 서버에 연결을 시도합니다.')
 
-        self.conn_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.conn_soc.connect((server_ip, Network.PORT))
-            self.append_log('게임 서버 접속 성공')
+            self.my_socket.connect((server_ip, Network.PORT))
+            objectmsg = "OBJECT"
+            self.my_socket.send(objectmsg.encode(encoding='utf-8'))
+            if(self.my_socket.recv(1024).decode() == 'ready') :
+                self.my_socket.send(pickle.dumps(self.user))
+        
         except TimeoutError as e:
             self.append_log('게임 서버로부터 응답이 없어 연결에 실패하였습니다.')
         except Exception as e:
@@ -80,14 +82,29 @@ class Network():
         self.button_game_start = Button(self.networkWindow, text='게임 시작', bg='blue', fg='white',command=self.game_start)
         self.button_game_start.grid(row=5,columnspan=3)
 
+        self.button_test = Button(self.networkWindow, text='통신 테스트', bg='blue', fg='white',command=self.test)
+        self.button_test.grid(row=6,columnspan=3)
+
         self.scroll = Scrollbar(self.networkWindow, orient='vertical')
         self.lbox = Listbox(self.networkWindow, yscrollcommand=self.scroll.set, width=70)
         self.scroll.config(command=self.lbox.yview)
-        self.lbox.grid(row=0, column=4, rowspan=6)
+        self.lbox.grid(row=0, column=4, rowspan=6, columnspan=2)
+
+        self.entry_message = Entry(self.networkWindow, width=50)
+        self.entry_message.grid(row=6, column=4)
+
+        self.button_send = Button(self.networkWindow, text='전송', width=20, command=lambda: self.send(self.entry_message.get()))
+        self.button_send.grid(row=6, column=5)
 
         self.append_log(self.user.display_name + '님 환영합니다.')
 
         #self.myChat.bind('<Return>', self.sendMsg)
+    
+    def test(self) :
+        self.my_socket.sendall(str('test').encode(encoding='utf-8'))
+    
+    def send(self, msg) :
+        self.my_socket.sendall(msg.encode(encoding='utf-8'))
 
     #로그창에 로그를 삽입합니다.
     def append_log(self, msg):
@@ -103,29 +120,25 @@ class Network():
         self.myChat.config(text='')
         print(type(msg))
         msg = msg.encode(encoding='utf-8')
-        print(self.conn_soc)
-        self.conn_soc.sendall(msg)
+        print(self.my_socket)
+        self.my_socket.sendall(msg)
         print('전송')
         
     def recvMsg(self):  
         while True:
-            print('keep going')
-            msg = self.conn_soc.recv(1024)
-            print(msg)
+            msg = self.my_socket.recv(1024)
+            print(msg.decode(encoding='utf-8'))
             msg = msg.decode()+'\n'
-            self.allChat += msg
-            print(',:', self.allChat)
-
-            self.chatCont.config(text=self.allChat)
+            self.append_log(msg)
 
     def run(self):
         #self.conn()
         self.setWindow()
         self.connect()
 
-        #th2 = threading.Thread(target=self.recvMsg)
-        #th2.start()
-        #self.choiceWindow.mainloop()
+        recive_task = threading.Thread(target=self.recvMsg)
+        recive_task.start()
+        self.networkWindow.mainloop()
 
     def game_start(self):
         if(self.mode == 'network_3') :

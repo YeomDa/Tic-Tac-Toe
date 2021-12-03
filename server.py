@@ -1,6 +1,10 @@
+import pickle
 import socket, threading
 import firebase_admin
 from firebase_admin import credentials, auth, db
+from tkinter import *
+import os
+import sys
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
 default_app = firebase_admin.initialize_app(cred, {
@@ -23,34 +27,60 @@ class Room:
             print(i)
             i.sendMsg(msg)
 
-#접속자에게 보여지는 화면
-class ChatClient:  
+    def disconnectAll(self):
+        for i in self.gamers:
+            i.disconnect()
+
+#게임 서버 접속자
+class Client:  
     def __init__(self, r, soc):
         self.room = r 
         self.id = None
         self.soc = soc  
+        self.user = None
 
+    #서버가 접속자에게서 메시지를 읽습니다
     def readMsg(self):
-        self.id = self.soc.recv(1024).decode()
-        msg = self.id + '님이 입장하셨습니다'
-        self.room.sendMsgAll(msg)
-
         while True:
-            msg = self.soc.recv(1024).decode()  
-            if msg == '/stop': 
-                self.soc.sendall(msg)  
-                self.room.delClient(self)
-                break
-            msg = self.id+': '+ msg
-            self.room.sendMsgAll(msg)  
-        self.room.sendMsgAll(self.id + '님이 퇴장하셨습니다.')
+            try :
+                msg = self.soc.recv(1024).decode(encoding='utf-8')
 
+                if(msg == '/stop_server') :
+                    db.reference('server_info').child('is_server_open').set('False')
+                    raise Exception('프로그램 종료')
+                
+                print('메시지를 읽었습니다. :', msg)
+                self.sendMsg(msg)
+
+            except ConnectionResetError as e :
+                self.room.delClient(self)
+                self.soc.close()
+                break
+            '''
+            msg = self.id + '님이 입장하셨습니다'
+            self.room.sendMsgAll(msg)
+
+            while True:
+                msg = self.soc.recv(1024).decode()  
+                if msg == '/stop': 
+                    self.soc.sendall(msg)  
+                    self.room.delClient(self)
+                    break
+                msg = self.id+': '+ msg
+                self.room.sendMsgAll(msg)  
+            self.room.sendMsgAll(self.id + '님이 퇴장하셨습니다.')
+            '''
+    
+    #서버가 접속자에게 메시지를 보냅니다
     def sendMsg(self, msg):
-        print(type(msg))
+        print('메시지를 보냅니다. :', msg)
         self.soc.sendall(msg.encode(encoding='utf-8'))
 
+    def disconnect(self):
+        self.soc.close()
+
 #서버에게 보여지는 화면
-class ChatServer:
+class GameServer:
     HOST = socket.gethostbyname(socket.gethostname())
     PORT = 9999
     is_another_server_online = False
@@ -58,9 +88,7 @@ class ChatServer:
     def __init__(self):
         if(db.reference('server_info').child('is_server_open').get() == 'True') :
             print('서버가 이미 열려있습니다.')
-            self.is_another_server_online = True
             return
-        
 
         db.reference('server_info').child('current_server_ip').set(self.HOST)
         db.reference('server_info').child('is_server_open').set('True')
@@ -69,16 +97,11 @@ class ChatServer:
         self.room = Room()
 
         self.run()
-    
-    def __del__(self):
-        #다른 호스트가 서버를 열었다면, 서버 상태를 offline으로 바꾸지 않고 종료합니다.
-        if(self.is_another_server_online != True) :
-            db.reference('server_info').child('is_server_open').set('False')
 
     def open(self):
         self.server_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_soc.bind((ChatServer.HOST, ChatServer.PORT))
+        self.server_soc.bind((GameServer.HOST, GameServer.PORT))
         self.server_soc.listen()
 
     def run(self):
@@ -88,16 +111,16 @@ class ChatServer:
         while True:
             client_soc, addr = self.server_soc.accept()
             print(addr, '접속')
-            c = ChatClient(self.room, client_soc)
+            c = Client(self.room, client_soc)
             self.room.addClient(c)
-            print('접속자:',self.room.gamers)
+            print('접속자 수:', len(self.room.gamers))
+            c.sendMsg('[Server] : 접속을 환영합니다.')
             th = threading.Thread(target=c.readMsg)
             th.start()
 
         #self.server_soc.close()
 
-
 def main():
-    ChatServer()
+    GameServer()
 
 main()
