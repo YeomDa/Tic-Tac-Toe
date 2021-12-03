@@ -19,17 +19,20 @@ class Network():
         print('유저 UID :', user.uid)
         print('유저 닉네임 :', user.display_name)
 
+        #데이터베이스 클라이언트 생성
         self.db = firestore.client()
-        
+        #firebase 데이터베이스의 경로를 지정합니다 (user_info/사용자uid)
         doc_ref = self.db.collection(u'user_info').document(user.uid)
+        #해당 데이터베이스 경로의 데이터를 가져옵니다
         doc = doc_ref.get()
+        #해당 경로가 존재한다면,
         if doc.exists:
-            self.play_game_count = doc.to_dict()['play_game_count']
+            self.play_game_count = doc.to_dict()['play_game_count'] #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
             print(self.play_game_count)
-            print(f'Document data: {doc.to_dict()}')
+            print(f'Document data: {doc.to_dict()}') #해당 경로의 모든 데이터를 출력합니다
         else:
             print(u'No such document!')
-            
+
     def setWindow(self):
         self.networkWindow = Tk()
         self.networkWindow.title('게임 선택 창')
@@ -41,8 +44,9 @@ class Network():
         self.label_my_total = Label(self.networkWindow, text='나의 전적')
         self.label_my_total.grid(row=1, column=0)
 
-        self.label_my_total_play = Label(self.networkWindow, text='플레이 수 :' + str(self.play_game_count))
-        self.label_my_total_play.grid(row=2, column=0)
+        #전적이 없는 플레이어는 오류가 뜨므로 일시로 주석 처리
+        #self.label_my_total_play = Label(self.networkWindow, text='플레이 수 :' + str(self.play_game_count))
+        #self.label_my_total_play.grid(row=2, column=0)
 
         self.button_send = Button(self.networkWindow, text='방 생성', width=20, 
         command=lambda: self.create_room(self.user.display_name, self.user.uid))
@@ -61,13 +65,14 @@ class Network():
     
     def create_room(self, title, uid):
         print('방생성 :', title)
+        #firebase의 데이터는 key-value형태로 저장됩니다.
         data = {
             u'HOST' : title,
             u'HOST_UID' : uid 
         }
+        #해당 경로에 데이터를 .set 합니다.
         self.db.collection(u'game_server').document('sessions').collection(title).document('users').set(data)
 
-        print('network_3 모드를 선택하였습니다.')
         self.networkWindow.destroy() #로비 화면 종료
         session_screen = sessionScreen.Session(self.user, title, True)
         session_screen.mainloop()

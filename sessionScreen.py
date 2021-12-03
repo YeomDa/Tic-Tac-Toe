@@ -38,7 +38,8 @@ class Session :
             self.label_guest_name = Label(self.sessionWindow, text='기다리는 중..')
             
             self.callback_done = threading.Event()
-        
+
+            #데이터가 변경되면 호출되는 콜벡 메서드
             def on_snapshot(doc_snapshot, changes, read_time):
                 for doc in doc_snapshot:
                     list = doc.to_dict()
@@ -49,8 +50,8 @@ class Session :
                         self.label_guest_name.configure(text=self.guest_name)
                 self.callback_done.set()
 
-            doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(title).document(u'users')
-            doc_watch = doc_ref.on_snapshot(on_snapshot)
+            doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(title).document(u'users') #변경을 감지할 데이터베이스 주소입니다.
+            doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
        
         else :
             self.label_guest_name = Label(self.sessionWindow, text=self.user.display_name)
