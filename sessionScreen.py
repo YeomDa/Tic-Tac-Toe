@@ -59,8 +59,8 @@ class Session :
             self.label_guest_name = Label(self.sessionWindow, text=self.user.display_name)
         self.label_guest_name.grid(row=1, column=1)
 
+        self.button_game_start = Button(self.sessionWindow, text='게임시작', command=lambda: self.game_start(self.title)) #호스트가 아니면 화면엔 안띄움
         if(isHost) :
-            self.button_game_start = Button(self.sessionWindow, text='게임시작', command=lambda: self.game_start(self.title))
             self.button_game_start.grid(row=2, column=0, columnspan=2)
         else :
             self.label_wait = Label(self.sessionWindow, text='호스트가 게임을 시작하기를 기다리는 중입니다.')
@@ -73,7 +73,7 @@ class Session :
                     is_game_start = list.get('is_game_start')
                     print(is_game_start)
                     if(is_game_start):
-                        self.game_start(self.title)
+                        self.button_game_start.invoke()
 
                 callback_done.set()
 
