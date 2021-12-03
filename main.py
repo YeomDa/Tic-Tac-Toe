@@ -435,7 +435,10 @@ class Tic_Tac_Toe(object):
                 self.surface.blit(self.small_board,(row*166,col*166))
                 
         self.board_status = np.zeros(shape=(3, 3))
-
+    
+    def undo_all(self):
+        self.draw_board()
+    
     def play_again(self):
         self.initialize_board()
         self.player_X_starts = not self.player_X_starts
