@@ -406,8 +406,9 @@ class Tic_Tac_Toe(object):
         self.X_score = 0
         self.O_score = 0
         self.tie_score = 0
-        self.draw_count = 0
-    
+
+    def __init__ (self, surface, socket) :
+        
 
     def init_game(self):
         self.turn  = black_stone
@@ -416,7 +417,7 @@ class Tic_Tac_Toe(object):
         ###self.init_board()
         ##self.coords = []
         ##self.redos = []
-       
+        self.id = 1
         self.gameover=False
 
     def draw_board(self):
@@ -437,25 +438,11 @@ class Tic_Tac_Toe(object):
                 self.surface.blit(self.small_board,(row*166,col*166))
                 
         self.board_status = np.zeros(shape=(3, 3))
-        self.draw_count = 0
-        
-    
-    def undo_all(self):
-        self.draw_board()
-        print(self.draw_count)
-        self.player_X_turns=self.player_X_starts
-            
-    
-
 
     def play_again(self):
         self.initialize_board()
         self.player_X_starts = not self.player_X_starts
         self.player_X_turns = self.player_X_starts
-        
-
-    def Count_draw(self):
-        self.draw_count= self.draw_count+1
 
     # ------------------------------------------------------------------
     # Drawing Functions:
@@ -468,12 +455,14 @@ class Tic_Tac_Toe(object):
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-        self.Count_draw()
+
+    def draw_O(self, logical_position, socket) :
+        #서버 통신 기능이 포함된 착수 기능
+        return
 
     def draw_X(self, logical_position):
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-        self.Count_draw()
 
     def display_gameover(self):
 

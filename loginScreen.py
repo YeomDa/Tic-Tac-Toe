@@ -2,13 +2,12 @@ from tkinter import *
 import tkinter
 import firebase_admin
 from firebase_admin import credentials, auth
+from firebase_admin import firestore
 import networkScreen
 import lobbyScreen
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
-default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL' : 'https://opensw-team1-default-rtdb.asia-southeast1.firebasedatabase.app/'
-})
+default_app = firebase_admin.initialize_app(cred)
 
 class Login() :
     def __init__(self) :
@@ -62,10 +61,6 @@ class Login() :
         #로비 화면 실행
         lobby = lobbyScreen.Lobby(user)
         lobby.mainloop()
-
-        #성현님 서버 접속
-        #next_page = choiceScreen.Choice(user=user,default_app=default_app)
-        #next_page.run()
     
     def register(self) :
         input_email = self.entry_reg_email.get()

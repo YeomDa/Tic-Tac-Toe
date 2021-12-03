@@ -1,12 +1,6 @@
-import threading
-import socket
 from tkinter import *
-from winsound import PlaySound
-import firebase_admin
-from firebase_admin import credentials, auth, db
-import main
-import socket
-import datetime
+from firebase_admin import firestore
+import sessionScreen
 
 class Network():
     #HOST = ''
@@ -20,36 +14,34 @@ class Network():
         self.myChat = None
         self.sendBtn = None
         self.allChat =''
-        self.myip = socket.gethostbyname(socket.gethostname())
-
-        #self.default_app = default_app
-        print('\n네트워크 설정 화면 진입.')
 
         print('유저 이메일 :', user.email)
         print('유저 UID :', user.uid)
         print('유저 닉네임 :', user.display_name)
-        ref = db.reference('user_info').child(user.uid).child('play_game_count')
-        self.play_game_count = ref.get()
 
-    def connect(self):
-        server_ip = db.reference('server_info').child('current_server_ip').get()
-
-        if(db.reference('server_info').child('is_server_open').get() != "True") :
-            self.append_log('현재 게임 서버가 오프라인입니다. 재접속을 시도하세요.')
-            return
-
-        print('게임 서버에 연결을 시도합니다. :', server_ip, ':', Network.PORT)
-        self.append_log('게임 서버에 연결을 시도합니다.')
-
-        self.conn_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            self.conn_soc.connect((server_ip, Network.PORT))
-            self.append_log('게임 서버 접속 성공')
-        except TimeoutError as e:
-            self.append_log('게임 서버로부터 응답이 없어 연결에 실패하였습니다.')
-        except Exception as e:
-            self.append_log('게임 서버 접속 실패 :' + str(e))
+        self.db = firestore.client()
         
+        doc_ref = self.db.collection(u'user_info').document(user.uid)
+        doc = doc_ref.get()
+        if doc.exists:
+            self.play_game_count = doc.to_dict()['play_game_count']
+            print(self.play_game_count)
+            print(f'Document data: {doc.to_dict()}')
+        else:
+            print(u'No such document!')
+
+        '''
+        callback_done = threading.Event()
+        
+        def on_snapshot(doc_snapshot, changes, read_time):
+            for doc in doc_snapshot:
+                print(f'Received document snapshot: {doc.to_dict()}')
+            callback_done.set()
+
+        doc_watch = doc_ref.on_snapshot(on_snapshot)
+        '''
+
+    
 
     def setWindow(self):
         self.networkWindow = Tk()
@@ -57,75 +49,51 @@ class Network():
         self.networkWindow.geometry('750x500')
 
         self.label_info = Label(self.networkWindow, text='네트워크 설정 화면')
-        self.label_info.grid(row=0, columnspan=3)
-
-        self.label_myip = Label(self.networkWindow, text='나의 ip :' + self.myip)
-        self.label_myip.grid(row=1, columnspan=3)
-
-        self.button_connect = Button(self.networkWindow, text='게임 서버 재접속', command=self.connect)
-        self.button_connect.grid(row=2, columnspan=3)
+        self.label_info.grid(row=0, column=0)
 
         self.label_my_total = Label(self.networkWindow, text='나의 전적')
-        self.label_my_total.grid(row=3, column=0)
-
-        self.label_enemy_total = Label(self.networkWindow, text='상대의 전적')
-        self.label_enemy_total.grid(row=3, column=1)
+        self.label_my_total.grid(row=1, column=0)
 
         self.label_my_total_play = Label(self.networkWindow, text='플레이 수 :' + str(self.play_game_count))
-        self.label_my_total_play.grid(row=4, column=0)
+        self.label_my_total_play.grid(row=2, column=0)
 
-        self.label_enemy_total_play = Label(self.networkWindow, text='플레이 수 : 임시')
-        self.label_enemy_total_play.grid(row=4, column=1)
+        self.button_send = Button(self.networkWindow, text='방 생성', width=20, 
+        command=lambda: self.create_room(self.user.display_name, self.user.uid))
+        self.button_send.grid(row=3, column=0)
 
-        self.button_game_start = Button(self.networkWindow, text='게임 시작', bg='blue', fg='white',command=self.game_start)
-        self.button_game_start.grid(row=5,columnspan=3)
+        self.entry_room_name = Entry(self.networkWindow, width=10)
+        self.entry_room_name.grid(row=4, column=0)
 
-        self.scroll = Scrollbar(self.networkWindow, orient='vertical')
-        self.lbox = Listbox(self.networkWindow, yscrollcommand=self.scroll.set, width=70)
-        self.scroll.config(command=self.lbox.yview)
-        self.lbox.grid(row=0, column=4, rowspan=6)
-
-        self.append_log(self.user.display_name + '님 환영합니다.')
-
-        #self.myChat.bind('<Return>', self.sendMsg)
-
-    #로그창에 로그를 삽입합니다.
-    def append_log(self, msg):
-        global now
-        self.now = str(datetime.datetime.now())[0:-7]
-        self.lbox.insert(END, "[{}] {}".format(self.now, msg))
-        self.lbox.update()
-        self.lbox.see(END)
-
-    def sendMsg(self, e):  
-        msg = self.myChat.get()
-        self.myChat.delete(0, END)
-        self.myChat.config(text='')
-        print(type(msg))
-        msg = msg.encode(encoding='utf-8')
-        print(self.conn_soc)
-        self.conn_soc.sendall(msg)
-        print('전송')
-        
-    def recvMsg(self):  
-        while True:
-            print('keep going')
-            msg = self.conn_soc.recv(1024)
-            print(msg)
-            msg = msg.decode()+'\n'
-            self.allChat += msg
-            print(',:', self.allChat)
-
-            self.chatCont.config(text=self.allChat)
+        self.button_game_start = Button(self.networkWindow, text='방 입장', bg='blue', fg='white',
+        command=lambda: self.enter_room(self.entry_room_name.get()))
+        self.button_game_start.grid(row=5,column=0)
 
     def run(self):
-        #self.conn()
         self.setWindow()
-        self.connect()
+        self.networkWindow.mainloop()
+    
+    def create_room(self, title, uid):
+        print('방생성 :', title)
+        data = {
+            u'HOST' : title,
+            u'HOST_UID' : uid 
+        }
+        self.db.collection(u'game_server').document('sessions').collection(title).document('users').set(data)
 
-        #th2 = threading.Thread(target=self.recvMsg)
-        #th2.start()
-        #self.choiceWindow.mainloop()
+        print('network_3 모드를 선택하였습니다.')
+        self.networkWindow.destroy() #로비 화면 종료
+        session_screen = sessionScreen.Session(self.user, title, True)
+        session_screen.mainloop()
+
+    def enter_room(self, title):
+        db_ref = self.db.collection(u'game_server').document(u'sessions').collection(title)
+        doc = db_ref.get()
+        if(bool(doc)):
+            self.networkWindow.destroy() #로비 화면 종료
+            session_screen = sessionScreen.Session(self.user, title, False)
+            session_screen.mainloop()
+
+        print('입장 :',title)
 
     def game_start(self):
         if(self.mode == 'network_3') :
@@ -138,5 +106,3 @@ class Network():
             #main.Tic_Tac_Toe.mainloop()
         else :
             print('네트워크 설정 화면에서 게임 실행 시 잘못된 모드 매개변수가 전달되었습니다.')
-
-        
