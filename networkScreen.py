@@ -6,6 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, auth, db
 import main
 import socket
+import datetime
 
 class Network():
     #HOST = ''
@@ -30,15 +31,17 @@ class Network():
         ref = db.reference(user.uid).child('play_game_count')
         self.play_game_count = ref.get()
 
-    def conn(self, ip):
+    def connect(self, ip):
         print(str(ip) + ' : ' + str(Network.PORT) + '에 연결을 시도합니다.')
+        self.append_log(str(ip) + ' : ' + str(Network.PORT) + '에 연결을 시도합니다.')
         self.conn_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn_soc.connect((ip, Network.PORT))
+        self.append_log(self.conn_soc.getsockname())
 
     def setWindow(self):
         self.networkWindow = Tk()
         self.networkWindow.title('게임 선택 창')
-        self.networkWindow.geometry('600x500+300+300')
+        self.networkWindow.geometry('750x500')
 
         self.label_info = Label(self.networkWindow, text='네트워크 설정 화면')
         self.label_info.grid(row=0, columnspan=3)
@@ -52,7 +55,7 @@ class Network():
         self.entry_ip = Entry(self.networkWindow, width=25)
         self.entry_ip.grid(row=3, column=0, columnspan=2)
 
-        self.button_connect = Button(self.networkWindow, text='연결', command= lambda: self.conn(self.entry_ip.get()))
+        self.button_connect = Button(self.networkWindow, text='연결', command= lambda: self.connect(self.entry_ip.get()))
         self.button_connect.grid(row=3, column=2)
 
         self.label_my_total = Label(self.networkWindow, text='나의 전적')
@@ -70,7 +73,22 @@ class Network():
         self.button_game_start = Button(self.networkWindow, text='게임 시작', bg='blue', fg='white',command=self.game_start)
         self.button_game_start.grid(row=6,columnspan=3)
 
+        self.scroll = Scrollbar(self.networkWindow, orient='vertical')
+        self.lbox = Listbox(self.networkWindow, yscrollcommand=self.scroll.set, width=70)
+        self.scroll.config(command=self.lbox.yview)
+        self.lbox.grid(row=0, column=4, rowspan=7)
+
+        self.append_log(self.user.display_name + '님 환영합니다.')
+
         #self.myChat.bind('<Return>', self.sendMsg)
+
+    #로그창에 로그를 삽입합니다.
+    def append_log(self, msg):
+        global now
+        self.now = str(datetime.datetime.now())[0:-7]
+        self.lbox.insert(END, "[{}] {}".format(self.now, msg))
+        self.lbox.update()
+        self.lbox.see(END)
 
     def sendMsg(self, e):  
         msg = self.myChat.get()
