@@ -473,7 +473,19 @@ class Tic_Tac_Toe(object):
         
         
 
-    #def redo(self):
+    def redo(self):
+        if self.player_X_turns==False:
+            logical_position=self.give_logical()
+            self.draw_O(logical_position)
+            self.player_X_turns= not self.player_X_turns
+            self.board_status[logical_position[0]][logical_position[1]] = -1
+        else:
+            logical_position=self.give_logical()
+            self.draw_X(logical_position)
+            self.player_X_turns= not self.player_X_turns
+            self.board_status[logical_position[0]][logical_position[1]] = +1
+            
+
     #def show_hide(self)
     def play_again(self):
         self.initialize_board()
