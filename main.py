@@ -407,7 +407,10 @@ class Tic_Tac_Toe(object):
         self.O_score = 0
         self.tie_score = 0
         self.draw_count = 0
-    
+        self.x_last_grid=0
+        self.y_last_grid=0
+        self.last_logical=0
+        self.logical=0
 
     def init_game(self):
         self.turn  = black_stone
@@ -439,15 +442,39 @@ class Tic_Tac_Toe(object):
         self.board_status = np.zeros(shape=(3, 3))
         self.draw_count = 0
         
-    
+    def save_grid(self, x_last, y_last):
+        self.x_last_grid=x_last
+        self.y_last_grid=y_last
+
+    def give_x_grid(self):
+        return self.x_last_grid
+
+    def give_y_grid(self):
+        return self.y_last_grid
+
+    def save_logical(self, last_logical):
+        self.last_logical=last_logical
+
+    def give_logical(self):
+        return self.last_logical
+
     def undo_all(self):
         self.draw_board()
         print(self.draw_count)
         self.player_X_turns=self.player_X_starts
+        
             
-    
+    def undo(self):
+        self.surface.blit(self.small_board,(self.give_x_grid(),self.give_y_grid()))
+        self.player_X_turns= not self.player_X_turns
+        logical_position=self.give_logical()
+        #print(logical_position)
+        self.board_status[logical_position[0]][logical_position[1]] = 0
+        
+        
 
-
+    #def redo(self):
+    #def show_hide(self)
     def play_again(self):
         self.initialize_board()
         self.player_X_starts = not self.player_X_starts
@@ -463,16 +490,21 @@ class Tic_Tac_Toe(object):
     # ------------------------------------------------------------------
 
     def draw_O(self, logical_position):
+        self.save_logical(logical_position)
         logical_position = np.array(logical_position)
+
         # logical_position = grid value on the board
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
+        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.Count_draw()
 
     def draw_X(self, logical_position):
+        self.save_logical(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
 
     def display_gameover(self):
@@ -501,13 +533,11 @@ class Tic_Tac_Toe(object):
         score_text = 'Player 1 (X) : ' + str(self.X_score) + '\n'
         score_text += 'Player 2 (O): ' + str(self.O_score) + '\n'
         score_text += 'Tie                    : ' + str(self.tie_score)
-       ## self.canvas.create_text(size_of_board / 2, 3 * size_of_board / 4, font="cmr 30 bold", fill=Green_color,
-         ##                       text=score_text)
+
         self.reset_board = True
 
         score_text = 'Click to play again \n'
-        ##self.canvas.create_text(size_of_board / 2, 15 * size_of_board / 16, font="cmr 20 bold", fill="gray",
-          ##                      text=score_text)
+
 
     # ------------------------------------------------------------------
     # Logical Functions:
@@ -602,7 +632,7 @@ class Tic_Tac_Toe(object):
         y=event[1]
         grid_position = [event[0], event[1]]
         logical_position = self.convert_grid_to_logical_position(grid_position)
-
+        
         if(x<=500 and x>=0):
             if(y<=500 and y>=0):
                 if self.player_X_turns:
