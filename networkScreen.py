@@ -64,12 +64,23 @@ class Network():
         self.networkWindow.mainloop()
     
     def create_room(self, title, uid):
+        self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').update({
+            u'is_game_start' : firestore.DELETE_FIELD
+        })
+
+        self.db.collection(u'game_server').document('sessions').collection(title).document('game_log').update({
+            u'landing_position_x' : firestore.DELETE_FIELD,
+            u'landing_position_y' : firestore.DELETE_FIELD,
+            u'turn' : firestore.DELETE_FIELD
+        })
+
         print('방 생성 :', title)
         #firebase의 데이터는 key-value형태로 저장됩니다.
         data = {
             u'HOST' : title,
             u'HOST_UID' : uid 
         }
+
         #해당 경로에 데이터를 .set 합니다.
         self.db.collection(u'game_server').document('sessions').collection(title).document('users').set(data)
         self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').set({

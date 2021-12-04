@@ -66,37 +66,42 @@ class Session :
             self.label_wait = Label(self.sessionWindow, text='호스트가 게임을 시작하기를 기다리는 중입니다.')
             self.label_wait.grid(row=2, column=0, columnspan=2)
 
-            callback_done = threading.Event()
+            self.callback_done = threading.Event()
             def on_snapshot(doc_snapshot, changes, read_time):
                 for doc in doc_snapshot:
                     list = doc.to_dict()
                     is_game_start = list.get('is_game_start')
                     print(is_game_start)
                     if(is_game_start):
-                        self.button_game_start.invoke()
+                        self.not_host_start()
 
-                callback_done.set()
+                self.callback_done.set()
 
             doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(title).document(u'game_start')
-            doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
+            self.doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
             
+    def not_host_start(self):
+        self.button_game_start.invoke()
 
     def mainloop(self):
         self.sessionWindow.mainloop()
 
     def game_start(self, title):
         if(self.isHost == False) :
+            print('도전자 게임 입장')
+            self.doc_watch.unsubscribe()
+            self.callback_done.set()
             self.sessionWindow.destroy() #세션 화면 종료
-            main.main(title)
+            main.main(title, self.user)
 
         if(self.is_guest_join) :
             print('게임 시작 가능')
-
+            
             self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').set({
                 u'is_game_start' : True
             }, merge=True)
 
             self.sessionWindow.destroy() #세션 화면 종료
-            main.main(title)
+            main.main(title, self.user)
         else :
             print('아직 도전자가 접속하지 않았습니다.')

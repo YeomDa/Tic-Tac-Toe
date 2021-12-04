@@ -3,9 +3,10 @@ from pygame.locals import *
 from tkinter import *
 import numpy as np
 import firebase_admin
-from firebase_admin import credentials, auth, db
+from firebase_admin import firestore
 import winsound
 import time
+import threading
 
 board_size = 15
 empty = 0
@@ -43,7 +44,6 @@ game=1
 fps = 60
 fps_clock = pygame.time.Clock()
 game=False
-network_game_title = None
 
 def main():
     pygame.init()
@@ -58,14 +58,20 @@ def main():
         run_game(surface, play_game, menu)
         menu.is_continue(play_game)
     
-def main(title):
+def main(title, user):
     network_game_title = title
+    network_user = user
+    #선공은 방장에게 우선 줍니다
+    if(network_user.display_name == title) :
+        network_my_turn = True
+    else :
+        network_my_turn = False
     pygame.init()
     surface = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("N-mok game")
     surface.fill(bg_color)
 
-    play_game = Tic_Tac_Toe(surface)
+    play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, network_user)
 
     menu = Menu(surface)
     while True:
@@ -387,7 +393,7 @@ class Tic_Tac_Toe(object):
     # Initialization Functions:
     # ------------------------------------------------------------------
 
-    def __init__(self, surface):
+    def __init__(self, surface, network_game_title=None, network_my_turn=None, network_user=None):
         self.board = [[0 for i in range(board_size)] for j in range(board_size)]
         self.menu = Menu(surface)
         self.rule = Rule(self.board)
@@ -407,14 +413,46 @@ class Tic_Tac_Toe(object):
         self.X_score = 0
         self.O_score = 0
         self.tie_score = 0
-<<<<<<< HEAD
-=======
         self.draw_count = 0
         self.x_last_grid=0
         self.y_last_grid=0
         self.last_logical=0
         self.logical=0
->>>>>>> 4d51575127f11f57e11ad2952606c42d48939418
+
+        print('리스너 부착 진입 전')
+        #네트워크 대전이라면,
+        if(network_game_title != None) :
+            self.db = firestore.client()
+            self.user = network_user
+            self.network_my_turn = network_my_turn
+            self.network_game_title = network_game_title
+            print('리스너 부착 진입')
+            callback_done = threading.Event()
+            def on_snapshot(doc_snapshot, changes, read_time):
+                print('현재 내 턴은? ->', self.network_my_turn)
+                
+                for doc in doc_snapshot:
+                    list = doc.to_dict()
+                    turn = list.get('turn')
+                    landing_position_x = list.get('landing_position_x')
+                    landing_position_y = list.get('landing_position_y')
+                    if(turn!=None and landing_position_x!=None and landing_position_y!=None) :
+                        if(self.network_my_turn) :
+                            self.network_my_turn = False
+                            return
+                        
+                        logical_position = np.array([landing_position_x, landing_position_y], dtype=int)
+                        if(turn == 'Black') :
+                            self.landing_black(logical_position)
+                        else :
+                            self.landing_white(logical_position)
+                        self.network_my_turn = True #상대방의 착수를 감지하고 적용하였으니, 이제 나의 턴입니다
+                            
+                callback_done.set()
+                
+            doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(network_game_title).document(u'game_log')
+            doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
+        
 
     def init_game(self):
         self.turn  = black_stone
@@ -444,8 +482,6 @@ class Tic_Tac_Toe(object):
                 self.surface.blit(self.small_board,(row*166,col*166))
                 
         self.board_status = np.zeros(shape=(3, 3))
-<<<<<<< HEAD
-=======
         self.draw_count = 0
         
     def save_grid(self, x_last, y_last):
@@ -491,7 +527,6 @@ class Tic_Tac_Toe(object):
             self.player_X_turns= not self.player_X_turns
             self.board_status[logical_position[0]][logical_position[1]] = +1
             
->>>>>>> 4d51575127f11f57e11ad2952606c42d48939418
 
     #def show_hide(self)
     def play_again(self):
@@ -518,11 +553,8 @@ class Tic_Tac_Toe(object):
         self.save_logical(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-<<<<<<< HEAD
-=======
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
-        self.Count_draw()
->>>>>>> 4d51575127f11f57e11ad2952606c42d48939418
+        #self.Count_draw()
 
     def display_gameover(self):
 
@@ -642,34 +674,79 @@ class Tic_Tac_Toe(object):
         y=event[1]
         grid_position = [event[0], event[1]]
         logical_position = self.convert_grid_to_logical_position(grid_position)
-        
+
         if(x<=500 and x>=0):
             if(y<=500 and y>=0):
                 if self.player_X_turns:
                     if not self.is_grid_occupied(logical_position):
-                        winsound.PlaySound("click.wav", winsound.SND_ASYNC)
-                        self.draw_X(logical_position)
-                        self.board_status[logical_position[0]][logical_position[1]] = -1
-                        self.player_X_turns = not self.player_X_turns
+                        #백돌 착수
+                        self.landing_white(logical_position)
                 else:
                     if not self.is_grid_occupied(logical_position):
-                        winsound.PlaySound("click.wav", winsound.SND_ASYNC)
-                        self.draw_O(logical_position)
-                        self.board_status[logical_position[0]][logical_position[1]] = 1
-                        self.player_X_turns = not self.player_X_turns
-
+                        #흑돌 착수
+                        self.landing_black(logical_position)
+                        
                 # Check if game is concluded
                 if self.is_gameover():
                     self.gameover=self.is_gameover()
                     self.display_gameover()
                     # print('Done')
-
                 else:
                     return False
             else:
                 return False
         else:
             return False
+    
+    def landing_white(self, logical_position) :
+        print('백돌 착수')
+        winsound.PlaySound("click.wav", winsound.SND_ASYNC)
+        self.draw_X(logical_position)
+        self.board_status[logical_position[0]][logical_position[1]] = -1
+        self.player_X_turns = not self.player_X_turns
+        if(self.network_game_title != None) :
+            self.network_landing_logging(False, logical_position)
+            if(self.network_my_turn == False):
+                if self.is_gameover():
+                    self.gameover=self.is_gameover()
+                    self.display_gameover()
+        else :
+            if self.is_gameover():
+                self.gameover=self.is_gameover()
+                self.display_gameover()
+            
+    
+    def landing_black(self,logical_position) :
+        print('흑돌 착수')
+        winsound.PlaySound("click.wav", winsound.SND_ASYNC)
+        self.draw_O(logical_position)
+        self.board_status[logical_position[0]][logical_position[1]] = 1
+        self.player_X_turns = not self.player_X_turns
+        if(self.network_game_title != None) :
+            self.network_landing_logging(True, logical_position)
+            if(self.network_my_turn == False):
+                if self.is_gameover():
+                    self.gameover=self.is_gameover()
+                    self.display_gameover()
+        else :
+            if self.is_gameover():
+                self.gameover=self.is_gameover()
+                self.display_gameover()
+
+    def network_landing_logging(self, isBlack, logical_position) :
+        print('데이터베이스에 게임 로그 기록')
+        if(isBlack) :
+            turn = 'Black'
+        else :
+            turn = 'White'
+
+        db_ref = self.db.collection(u'game_server').document(u'sessions').collection(self.network_game_title).document(u'game_log')
+        db_ref.set({
+            u'turn' : turn,
+            u'landing_position_x' : int(logical_position[0]),
+            u'landing_position_y' : int(logical_position[1])
+        }, merge=True)
+        
                 
 if __name__ == '__main__':
     main()
