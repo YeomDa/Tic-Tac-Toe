@@ -316,6 +316,7 @@ class Menu(object):
             game.is_show = False
         else:
             self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+            game.show_numbers()
             game.is_show = True
         
     def check_rect(self, pos, game):
@@ -489,7 +490,14 @@ class Tic_Tac_Toe(object):
                 # grid_position = actual pixel values of the center of the grid
                 grid_position = self.convert_logical_to_grid_position(logical_position)
                 self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
-                self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                if self.is_show:
+                    self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    self.menu.make_text(self.font, str(self.draw_count), white, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
+                else:
+                    if i==self.draw_count:
+                        self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    else:
+                       self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size)) 
                 self.player_X_turns= not self.player_X_turns
                 self.board_status[logical_position[0]][logical_position[1]] = -1
             else:
@@ -500,20 +508,36 @@ class Tic_Tac_Toe(object):
                 # grid_position = actual pixel values of the center of the grid
                 grid_position = self.convert_logical_to_grid_position(logical_position)
                 self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
-                self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                if self.is_show:
+                    self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    self.menu.make_text(self.font, str(self.draw_count), black, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
+                else:
+                    if i==self.draw_count:
+                        self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    else:
+                       self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
                 self.player_X_turns= not self.player_X_turns
                 self.board_status[logical_position[0]][logical_position[1]] = +1
         else:
             return
 
-    def show_numbers(self):        
-        for i in range(len(self.logical_list)):
-                if(self.board_status[i[0],i[1]]==1):
-                    grid_position = self.convert_logical_to_grid_position(i)
-                    self.menu.make_text(self.font, str(i), black, None,grid_position[1] - symbol_size ,grid_position[0] - symbol_size)
-                elif(self.board_status[i[0],i[1]]==-1):
-                    grid_position = self.convert_logical_to_grid_position(i)
-                    self.menu.make_text(self.font, str(i), white, None,grid_position[1] - symbol_size , grid_position[0] - symbol_size)
+    def show_numbers(self):
+        j=len(self.logical_list)
+        for i in range(j):
+            grid_position = self.convert_logical_to_grid_position(self.logical_list[i])
+            if i==j-1:
+                if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                    self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                    self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+
+            if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                grid_position = self.convert_logical_to_grid_position(self.logical_list[i])
+                self.menu.make_text(self.font, str(i+1), white, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
+            elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                    grid_position = self.convert_logical_to_grid_position(self.logical_list[i])
+                    self.menu.make_text(self.font, str(i+1), black, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
+                
     
     def show_number(self):
         logical=self.give_logical()
@@ -531,25 +555,24 @@ class Tic_Tac_Toe(object):
         for i in range(j):
                 grid_position = self.convert_logical_to_grid_position(self.logical_list[i])
                 if i<j-1:
-                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
                         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
                         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
                 if i==j-1:
-                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
                         self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
                         self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+
     def hide_number(self):
-        if self.draw_count!=1:
-            grid_position = self.convert_logical_to_grid_position(self.logical_list[self.draw_count])
-            l_grid_position = self.convert_logical_to_grid_position(self.logical_list[(self.draw_count)-1])
-            if self.player_X_turns==True:
-                self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-                self.surface.blit(self.black,(l_grid_position[0] - symbol_size,l_grid_position[1] - symbol_size))
+        if self.draw_count>=1:
+            grid_position = self.convert_logical_to_grid_position(self.logical_list[self.draw_count-1])
+            if self.player_X_turns==False:
+                self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
             else:
-                self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-                self.surface.blit(self.white,(l_grid_position[0] - symbol_size,l_grid_position[1] - symbol_size))
+                self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                
 
     def play_again(self):
         self.initialize_board()
@@ -581,6 +604,7 @@ class Tic_Tac_Toe(object):
                 self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
             else:
                 self.hide_number()
+                self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         else:
             self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         print(grid_position)
@@ -597,6 +621,7 @@ class Tic_Tac_Toe(object):
                 self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
             else:
                 self.hide_number()
+                self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         else:
             self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
@@ -731,6 +756,8 @@ class Tic_Tac_Toe(object):
         
         if(x<=500 and x>=0):
             if(y<=500 and y>=0):
+                if self.draw_count!=len(self.logical_list):
+                    self.logical_list.pop()
                 if self.player_X_turns:
                     if not self.is_grid_occupied(logical_position):
                         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
@@ -738,8 +765,6 @@ class Tic_Tac_Toe(object):
                         self.board_status[logical_position[0]][logical_position[1]] = -1    
                         if self.is_show==True:                   
                             self.show_number()
-                        else:
-                            self.hide_number()
                         self.player_X_turns = not self.player_X_turns
                 else:
                     if not self.is_grid_occupied(logical_position):
@@ -748,10 +773,13 @@ class Tic_Tac_Toe(object):
                         self.board_status[logical_position[0]][logical_position[1]] = 1                      
                         if self.is_show==True:                   
                             self.show_number()
-                        else:
-                            self.hide_number()
                         self.player_X_turns = not self.player_X_turns
-
+                
+                print("카운트 값")
+                print(self.draw_count)
+                print("list 길이")
+                print(len(self.logical_list))
+                
                 # Check if game is concluded
                 if self.is_gameover():
                     self.gameover=self.is_gameover()
