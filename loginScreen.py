@@ -81,6 +81,13 @@ class Login() :
         print('이메일 :', user.email)
         print('UID :', user.uid)
         print('닉네임 :', user.display_name)
+        db = firestore.client()
+        db.collection(u'user_info').document(user.uid).set({
+            u'play_game_count' : 0,
+            u'win_count' : 0,
+            u'defeat_count' : 0,
+            u'tie_count' : 0
+        })
         self.registerWindow.destroy()
 
     def open_register_window(self) :

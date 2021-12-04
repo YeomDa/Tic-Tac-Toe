@@ -45,6 +45,27 @@ fps = 60
 fps_clock = pygame.time.Clock()
 game=False
 
+class User_Info():
+    def __init__(self, user):
+        self.user = user
+        self.nickname = self.user.display_name
+        self.uid = self.user.uid
+        
+        db = firestore.client()
+        db_ref = db.collection(u'user_info').document(self.uid)
+        doc = db_ref.get()
+        if(doc.exists):
+            data_list = doc.to_dict()
+            self.total = data_list.get('play_game_count')
+            self.win = data_list.get('win_count')
+            self.defeat = data_list.get('defeat_count')
+            self.tie = data_list.get('tie_count')
+        else :
+            self.total = 0
+            self.win = 0
+            self.defeat = 0
+            self.tie = 0
+
 def main():
     pygame.init()
     surface = pygame.display.set_mode((window_width, window_height))
@@ -59,10 +80,10 @@ def main():
         menu.is_continue(play_game)
     
 def main(title, user):
+    user_info = User_Info(user)
     network_game_title = title
-    network_user = user
     #선공은 방장에게 우선 줍니다
-    if(network_user.display_name == title) :
+    if(user_info.nickname == title) :
         network_my_turn = True
     else :
         network_my_turn = False
@@ -71,7 +92,7 @@ def main(title, user):
     pygame.display.set_caption("N-mok game")
     surface.fill(bg_color)
 
-    play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, network_user)
+    play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
 
     menu = Menu(surface)
     while True:
@@ -393,7 +414,7 @@ class Tic_Tac_Toe(object):
     # Initialization Functions:
     # ------------------------------------------------------------------
 
-    def __init__(self, surface, network_game_title=None, network_my_turn=None, network_user=None):
+    def __init__(self, surface, network_game_title=None, network_my_turn=None, user_info=None):
         self.board = [[0 for i in range(board_size)] for j in range(board_size)]
         self.menu = Menu(surface)
         self.rule = Rule(self.board)
@@ -422,8 +443,9 @@ class Tic_Tac_Toe(object):
         print('리스너 부착 진입 전')
         #네트워크 대전이라면,
         if(network_game_title != None) :
+            self.isHost = network_my_turn #첫 시작하는 사람은 호스트입니다
             self.db = firestore.client()
-            self.user = network_user
+            self.user_info = user_info
             self.network_my_turn = network_my_turn
             self.network_game_title = network_game_title
             print('리스너 부착 진입')
@@ -649,14 +671,14 @@ class Tic_Tac_Toe(object):
         gameover = self.X_wins or self.O_wins or self.tie
 
         if self.X_wins:
-            #self.increase_user_score()
             print('X wins')
-        if self.O_wins:
-            #self.increase_user_score()
+            self.host_win()
+        elif self.O_wins:
             print('O wins')
-        if self.tie:
-            #self.increase_user_score()
+            self.guest_win()
+        elif self.tie:
             print('Its a tie')
+            self.host_guest_tie()
 
         return gameover
 
@@ -687,10 +709,9 @@ class Tic_Tac_Toe(object):
                         self.landing_black(logical_position)
                         
                 # Check if game is concluded
-                if self.is_gameover():
-                    self.gameover=self.is_gameover()
+                self.gameover = self.is_gameover()
+                if (self.gameover):
                     self.display_gameover()
-                    # print('Done')
                 else:
                     return False
             else:
@@ -707,12 +728,12 @@ class Tic_Tac_Toe(object):
         if(self.network_game_title != None) :
             self.network_landing_logging(False, logical_position)
             if(self.network_my_turn == False):
-                if self.is_gameover():
-                    self.gameover=self.is_gameover()
+                self.gameover = self.is_gameover()
+                if (self.gameover):
                     self.display_gameover()
         else :
-            if self.is_gameover():
-                self.gameover=self.is_gameover()
+            self.gameover = self.is_gameover()
+            if (self.gameover):
                 self.display_gameover()
             
     
@@ -725,12 +746,12 @@ class Tic_Tac_Toe(object):
         if(self.network_game_title != None) :
             self.network_landing_logging(True, logical_position)
             if(self.network_my_turn == False):
-                if self.is_gameover():
-                    self.gameover=self.is_gameover()
+                self.gameover = self.is_gameover()
+                if (self.gameover):
                     self.display_gameover()
         else :
-            if self.is_gameover():
-                self.gameover=self.is_gameover()
+            self.gameover = self.is_gameover()
+            if (self.gameover):
                 self.display_gameover()
 
     def network_landing_logging(self, isBlack, logical_position) :
@@ -745,6 +766,49 @@ class Tic_Tac_Toe(object):
             u'turn' : turn,
             u'landing_position_x' : int(logical_position[0]),
             u'landing_position_y' : int(logical_position[1])
+        }, merge=True)
+
+    def host_win(self):
+        print('호스트가 이김. 전적을 반영합니다.')
+        if(self.isHost):
+            self.user_info.total += 1
+            self.user_info.win += 1
+            self.db.collection(u'user_info').document(self.user_info.uid).set({
+                u'play_game_count' : self.user_info.total,
+                u'win_count' : self.user_info.win
+            }, merge=True)
+        else:
+            self.user_info.total += 1
+            self.user_info.defeat += 1
+            self.db.collection(u'user_info').document(self.user_info.uid).set({
+                u'play_game_count' : self.user_info.total,
+                u'defeat_count' : self.user_info.defeat
+            }, merge=True)
+    
+    def guest_win(self):
+        print('게스트가 이김. 전적을 반영합니다.')
+        if(self.isHost):
+            self.user_info.total += 1
+            self.user_info.defeat += 1
+            self.db.collection(u'user_info').document(self.user_info.uid).set({
+                u'play_game_count' : self.user_info.total,
+                u'defeat_count' : self.user_info.defeat
+            }, merge=True)
+        else:
+            self.user_info.total += 1
+            self.user_info.win += 1
+            self.db.collection(u'user_info').document(self.user_info.uid).set({
+                u'play_game_count' : self.user_info.total,
+                u'win_count' : self.user_info.win
+            }, merge=True)
+    
+    def host_guest_tie(self):
+        print('무승부. 전적을 반영합니다.')
+        self.user_info.total += 1
+        self.user_info.tie += 1
+        self.db.collection(u'user_info').document(self.user_info.uid).set({
+            u'play_game_count' : self.user_info.total,
+            u'win_count' : self.user_info.tie
         }, merge=True)
         
                 
