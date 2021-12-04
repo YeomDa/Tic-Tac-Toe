@@ -309,25 +309,15 @@ class Menu(object):
 
     def show_hide(self, game):        
         top, left = window_height - 90, window_width - 200
-        if Get_game()==True:
-            if game.is_show:
-                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
-                game.hide_numbers()
-                game.is_show = False
-            else:
-                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
-                
-                game.is_show = True
+        
+        if game.is_show:
+            self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
+            game.hide_numbers()
+            game.is_show = False
         else:
-            if game.is_show:
-                game.hide_numbers()
-                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
-                game.is_show = False
-            else:
-                game.show_numbers()
-                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
-                game.is_show = True
-
+            self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+            game.is_show = True
+        
     def check_rect(self, pos, game):
         if self.new_rect.collidepoint(pos):
             return True
@@ -550,6 +540,16 @@ class Tic_Tac_Toe(object):
                         self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
                     elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
                         self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+    def hide_number(self):
+        if self.draw_count!=1:
+            grid_position = self.convert_logical_to_grid_position(self.logical_list[self.draw_count])
+            l_grid_position = self.convert_logical_to_grid_position(self.logical_list[(self.draw_count)-1])
+            if self.player_X_turns==True:
+                self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                self.surface.blit(self.black,(l_grid_position[0] - symbol_size,l_grid_position[1] - symbol_size))
+            else:
+                self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                self.surface.blit(self.white,(l_grid_position[0] - symbol_size,l_grid_position[1] - symbol_size))
 
     def play_again(self):
         self.initialize_board()
@@ -576,7 +576,13 @@ class Tic_Tac_Toe(object):
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
-        self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+        if self.is_show==False:
+            if self.draw_count==0:
+                self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+            else:
+                self.hide_number()
+        else:
+            self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         print(grid_position)
         self.Count_draw()
         print(self.draw_count)
@@ -586,7 +592,13 @@ class Tic_Tac_Toe(object):
         self.save_logical_list(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
         print(grid_position)
-        self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+        if self.is_show==False:
+            if self.draw_count==0:
+                self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+            else:
+                self.hide_number()
+        else:
+            self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
         print(self.draw_count)
@@ -723,15 +735,21 @@ class Tic_Tac_Toe(object):
                     if not self.is_grid_occupied(logical_position):
                         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                         self.draw_X(logical_position)
-                        self.board_status[logical_position[0]][logical_position[1]] = -1                       
-                        self.show_number()
+                        self.board_status[logical_position[0]][logical_position[1]] = -1    
+                        if self.is_show==True:                   
+                            self.show_number()
+                        else:
+                            self.hide_number()
                         self.player_X_turns = not self.player_X_turns
                 else:
                     if not self.is_grid_occupied(logical_position):
                         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                         self.draw_O(logical_position)
                         self.board_status[logical_position[0]][logical_position[1]] = 1                      
-                        self.show_number()
+                        if self.is_show==True:                   
+                            self.show_number()
+                        else:
+                            self.hide_number()
                         self.player_X_turns = not self.player_X_turns
 
                 # Check if game is concluded
