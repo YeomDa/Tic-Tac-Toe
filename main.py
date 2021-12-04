@@ -87,9 +87,10 @@ def main(title, user):
         network_my_turn = True
     else :
         network_my_turn = False
+
     pygame.init()
     surface = pygame.display.set_mode((window_width, window_height))
-    pygame.display.set_caption("N-mok game")
+    pygame.display.set_caption(user_info.nickname+"님의 N-mok game")
     surface.fill(bg_color)
 
     play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
@@ -321,7 +322,7 @@ class Menu(object):
         
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
-        self.Change_Game = self.make_text(self.font, 'Change Game', blue, None, top-180,left)
+        #self.Change_Game = self.make_text(self.font, 'Change Game', blue, None, top-180,left)
         self.undo_rect = self.make_text(self.font, 'Undo', blue, None, top - 150, left)
         self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
         self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
@@ -373,8 +374,8 @@ class Menu(object):
             game.redo()
         elif self.quit_rect.collidepoint(pos):
             self.terminate()
-        elif self.Change_Game.collidepoint(pos):
-            self.C_Game()
+    #    elif self.Change_Game.collidepoint(pos):
+    #        self.C_Game()
         return False
     
     def C_Game(self):
@@ -451,7 +452,7 @@ class Tic_Tac_Toe(object):
             print('리스너 부착 진입')
             callback_done = threading.Event()
             def on_snapshot(doc_snapshot, changes, read_time):
-                print('현재 내 턴은? ->', self.network_my_turn)
+                #print('현재 내 턴은? ->', self.network_my_turn)
                 
                 for doc in doc_snapshot:
                     list = doc.to_dict()
