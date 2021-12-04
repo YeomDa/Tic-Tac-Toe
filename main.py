@@ -417,12 +417,12 @@ class Tic_Tac_Toe(object):
         self.O_score = 0
         self.tie_score = 0
         self.draw_count = 0
-        self.x_last_grid=0
-        self.y_last_grid=0
+        self.x_last_grid=[]
+        self.y_last_grid=[]
         self.last_logical=0
         self.logical=0
         self.is_show=True
-        self.logical_list=np.zeros(9)
+        self.logical_list=[]
         
 
     def init_game(self):
@@ -456,23 +456,23 @@ class Tic_Tac_Toe(object):
         self.draw_count = 0
         
     def save_grid(self, x_last, y_last):
-        self.x_last_grid=x_last
-        self.y_last_grid=y_last
+        self.x_last_grid[self.draw_count]=x_last
+        self.y_last_grid[self.draw_count]=y_last
 
     def give_x_grid(self):
-        return self.x_last_grid
+        return self.x_last_grid[self.draw_count]
 
     def give_y_grid(self):
-        return self.y_last_grid
+        return self.y_last_grid[self.draw_count]
 
     def save_logical(self, last_logical):
         self.last_logical=last_logical
 
     def give_logical(self):
-        return self.last_logical
+        return self.logical_list[self.draw_count]
     
     def save_logical_list(self, new_logical):
-        self.logical_list[(self.draw_count)-1]=np.array(new_logical,dtype=int)    
+        self.logical_list[(self.draw_count)]=new_logical    
 
     def undo_all(self):
         self.draw_board()            
@@ -483,6 +483,7 @@ class Tic_Tac_Toe(object):
         logical_position=self.give_logical()
         #print(logical_position)
         self.board_status[logical_position[0]][logical_position[1]] = 0
+        self.Minus_count()
 
     def redo(self):
         if self.player_X_turns==False:
@@ -528,29 +529,31 @@ class Tic_Tac_Toe(object):
     def Count_draw(self):
         self.draw_count= self.draw_count+1
 
+    def Minus_count(self):
+        self.draw_count=self.draw_count-1
     # ------------------------------------------------------------------
     # Drawing Functions:
     # The modules required to draw required game based object on canvas
     # ------------------------------------------------------------------
 
     def draw_O(self, logical_position):
-        self.save_logical(logical_position)
+        #self.save_logical_list(logical_position)
         #self.save_logical_list(logical_position)
         logical_position = np.array(logical_position)
 
         # logical_position = grid value on the board
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
-        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+        #self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.Count_draw()
 
     def draw_X(self, logical_position):
-        self.save_logical(logical_position)
+        #self.save_logical_list(logical_position)
         #self.save_logical_list(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+        #self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
 
     def display_gameover(self):
