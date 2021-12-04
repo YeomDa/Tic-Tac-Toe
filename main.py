@@ -518,10 +518,10 @@ class Tic_Tac_Toe(object):
 
     def show_numbers(self):        
         for i in range(len(self.logical_list)):
-                if(self.board_status[i[0][1]]==1):
+                if(self.board_status[i[0],i[1]]==1):
                     grid_position = self.convert_logical_to_grid_position(i)
                     self.menu.make_text(self.font, str(i), black, None,grid_position[1] - symbol_size ,grid_position[0] - symbol_size)
-                elif(self.board_status[i[0][1]]==-1):
+                elif(self.board_status[i[0],i[1]]==-1):
                     grid_position = self.convert_logical_to_grid_position(i)
                     self.menu.make_text(self.font, str(i), white, None,grid_position[1] - symbol_size , grid_position[0] - symbol_size)
     
@@ -529,12 +529,27 @@ class Tic_Tac_Toe(object):
         logical=self.give_logical()
         if(self.board_status[logical[0]][logical[1]]==-1):
             grid_position = self.convert_logical_to_grid_position(logical)
-            self.menu.make_text(self.font, str(self.draw_count), black, None, grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+            print(grid_position)
+            self.menu.make_text(self.font, str(self.draw_count), black, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
         elif(self.board_status[logical[0]][logical[1]]==1):
-                    grid_position = self.convert_logical_to_grid_position(logical)
-                    self.menu.make_text(self.font, str(self.draw_count), white, None, grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+            grid_position = self.convert_logical_to_grid_position(logical)
+            print(grid_position)
+            self.menu.make_text(self.font, str(self.draw_count), white, None,grid_position[1] - symbol_size + 70, grid_position[0] - symbol_size + 70)
 
-    #def is_hide(self):
+    def hide_numbers(self):
+        j=len(self.logical_list)
+        for i in range(j):
+                grid_position = self.convert_logical_to_grid_position(self.logical_list[i])
+                if i<j-1:
+                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                        self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                        self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                if i==j-1:
+                    if(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==1):
+                        self.surface.blit(self.l_white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                    elif(self.board_status[self.logical_list[i][0],self.logical_list[i][1]]==-1):
+                        self.surface.blit(self.l_black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
 
     def play_again(self):
         self.initialize_board()
@@ -554,8 +569,7 @@ class Tic_Tac_Toe(object):
     # ------------------------------------------------------------------
 
     def draw_O(self, logical_position):
-        #self.save_logical_list(logical_position)
-        
+        #self.save_logical_list(logical_position)    
         self.save_logical_list(logical_position)
         logical_position = np.array(logical_position)
         # logical_position = grid value on the board
@@ -563,6 +577,7 @@ class Tic_Tac_Toe(object):
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+        print(grid_position)
         self.Count_draw()
         print(self.draw_count)
 
@@ -570,6 +585,7 @@ class Tic_Tac_Toe(object):
         #self.save_logical_list(logical_position)
         self.save_logical_list(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
+        print(grid_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
