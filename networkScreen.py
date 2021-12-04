@@ -1,4 +1,5 @@
 from tkinter import *
+import tkinter.font as tkFont
 from firebase_admin import firestore
 import sessionScreen
 
@@ -27,37 +28,58 @@ class Network():
         doc = doc_ref.get()
         #해당 경로가 존재한다면,
         if doc.exists:
-            self.play_game_count = doc.to_dict()['play_game_count'] #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
-            print(self.play_game_count)
-            print(f'Document data: {doc.to_dict()}') #해당 경로의 모든 데이터를 출력합니다
+            data_list = doc.to_dict()
+            self.play_game_count = data_list.get('play_game_count') #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
+            self.win_count = data_list.get('win_count')
+            self.tie_count = data_list.get('tie_count')
+            self.defeat_count = data_list.get('defeat_count')
+            print(f'전적 : {data_list}') #해당 경로의 모든 데이터를 출력합니다
         else:
             print(u'No such document!')
+        
+        if(self.play_game_count == None) : self.play_game_count = 0
+        if(self.win_count == None) : self.win_count = 0
+        if(self.tie_count == None) : self.tie_count = 0
+        if(self.defeat_count == None) : self.defeat_count = 0
 
     def setWindow(self):
         self.networkWindow = Tk()
         self.networkWindow.title('게임 선택 창')
-        self.networkWindow.geometry('750x500')
+        self.networkWindow.geometry('250x300')
 
-        self.label_info = Label(self.networkWindow, text='네트워크 설정 화면')
-        self.label_info.grid(row=0, column=0)
+        self.label_info = Label(self.networkWindow, text='네트워크 대전 로비 화면', height=2)
+        info_font = tkFont.Font(family="Arial", size=16, weight="bold")
+        self.label_info.configure(font=info_font)
+        self.label_info.grid(row=0, column=0, columnspan=2)
 
-        self.label_my_total = Label(self.networkWindow, text='나의 전적')
-        self.label_my_total.grid(row=1, column=0)
+        self.label_my_total = Label(self.networkWindow, text='닉네임 : ' + self.user.display_name)
+        self.label_my_total.grid(row=1, column=0, columnspan=2)
 
-        #전적이 없는 플레이어는 오류가 뜨므로 일시로 주석 처리
-        #self.label_my_total_play = Label(self.networkWindow, text='플레이 수 :' + str(self.play_game_count))
-        #self.label_my_total_play.grid(row=2, column=0)
+        self.label_my_total_play = Label(self.networkWindow, text='총 게임 수 :' + str(self.play_game_count))
+        self.label_my_total_play.grid(row=2, column=0, columnspan=2)
 
-        self.button_send = Button(self.networkWindow, text='방 생성', width=20, 
+        self.label_my_win = Label(self.networkWindow, text='승리 :' + str(self.win_count))
+        self.label_my_win.grid(row=3, column=0, columnspan=2)
+
+        self.label_my_tie = Label(self.networkWindow, text='무승부 :' + str(self.tie_count))
+        self.label_my_tie.grid(row=4, column=0, columnspan=2)
+
+        self.label_my_defeat = Label(self.networkWindow, text='패배 :' + str(self.defeat_count))
+        self.label_my_defeat.grid(row=5, column=0, columnspan=2)
+
+        self.label_my_defeat = Label(self.networkWindow, text='승률 :' + str(self.play_game_count / self.win_count * 100) + '%')
+        self.label_my_defeat.grid(row=6, column=0, columnspan=2)
+
+        self.button_send = Button(self.networkWindow, text='방 생성', width=15, bg='blue', fg='white',
         command=lambda: self.create_room(self.user.display_name, self.user.uid))
-        self.button_send.grid(row=3, column=0)
+        self.button_send.grid(row=7, column=0, columnspan=2, pady=10)
 
-        self.entry_room_name = Entry(self.networkWindow, width=10)
-        self.entry_room_name.grid(row=4, column=0)
+        self.entry_room_name = Entry(self.networkWindow, width=20)
+        self.entry_room_name.grid(row=8, column=0, pady=10)
 
         self.button_game_start = Button(self.networkWindow, text='방 입장', bg='blue', fg='white',
         command=lambda: self.enter_room(self.entry_room_name.get()))
-        self.button_game_start.grid(row=5,column=0)
+        self.button_game_start.grid(row=8,column=1, pady=10)
 
     def run(self):
         self.setWindow()
