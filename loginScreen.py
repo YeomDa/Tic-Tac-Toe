@@ -13,7 +13,7 @@ class Login() :
     def __init__(self) :
         self.loginWindow = Tk()
         self.loginWindow.title('로그인 및 회원가입')
-        self.loginWindow.geometry('250x150')
+        self.loginWindow.geometry('280x200')
 
         self.label_info = Label(self.loginWindow, text='로그인', font=('돋음', 10))
         self.label_info.grid(columnspan= 2, row = 0)
@@ -32,6 +32,13 @@ class Login() :
         self.button_login.grid(columnspan = 2 , row = 4)
         self.button_register = Button(self.loginWindow, text='회원가입', bg='blue', fg='white', command=self.open_register_window)
         self.button_register.grid(columnspan = 2, row = 5)
+
+        self.label_fast_login = Label(self.loginWindow, text='빠른 로그인', font=('돋음', 10))
+        self.label_fast_login.grid(columnspan=2, row = 6, pady=5)
+        self.button_byungmeo1 = Button(self.loginWindow, text='byungmeo', bg='blue', fg='white', command=lambda: self.login('wlsrlfvkr@gmail.com'))
+        self.button_byungmeo1.grid(row = 7, column = 0)
+        self.button_byungmeo2 = Button(self.loginWindow, text='byungmeo2', bg='blue', fg='white', command=lambda: self.login('kog5071@naver.com'))
+        self.button_byungmeo2.grid(row = 7, column = 1)
 
     def mainloop(self) :
         self.loginWindow.mainloop()
@@ -61,7 +68,29 @@ class Login() :
         #로비 화면 실행
         lobby = lobbyScreen.Lobby(user)
         lobby.mainloop()
-    
+
+    #빠른 로그인
+    def login(self, email):
+        print('빠른 로그인')
+        input_email = email
+
+        try :
+            user = auth.get_user_by_email(input_email)
+        except :
+            print('로그인에 실패하였습니다.')
+            return
+
+        print('\n로그인 성공!')
+        print('이메일 :', user.email)
+        print('UID :', user.uid)
+        print('닉네임 :', user.display_name)
+
+        self.loginWindow.destroy()
+        
+        #로비 화면 실행
+        lobby = lobbyScreen.Lobby(user)
+        lobby.mainloop()
+
     def register(self) :
         input_email = self.entry_reg_email.get()
         input_pwd = self.entry_reg_password.get()
