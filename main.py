@@ -488,7 +488,7 @@ class Tic_Tac_Toe(object):
 
     def redo(self):
         i=len(self.logical_list)
-        if self.draw_count<=i:
+        if self.draw_count<i:
             self.Count_draw()
             print(self.draw_count)
             if self.player_X_turns==False:
