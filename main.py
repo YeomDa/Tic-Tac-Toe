@@ -456,24 +456,24 @@ class Tic_Tac_Toe(object):
         self.draw_count = 0
         
     def save_grid(self, x_last, y_last):
-        self.x_last_grid[self.draw_count]=x_last
-        self.y_last_grid[self.draw_count]=y_last
+        self.x_last_grid.append(x_last)
+        self.y_last_grid.append(y_last)
 
     def give_x_grid(self):
-        return self.x_last_grid[self.draw_count]
+        return self.x_last_grid[self.draw_count-1]
 
     def give_y_grid(self):
-        return self.y_last_grid[self.draw_count]
+        return self.y_last_grid[self.draw_count-1]
 
     def save_logical(self, last_logical):
         self.last_logical=last_logical
 
     def give_logical(self):
-        return self.logical_list[self.draw_count]
+        return self.logical_list[self.draw_count-1]
     
     def save_logical_list(self, new_logical):
-        self.logical_list[(self.draw_count)]=new_logical    
-
+        self.logical_list.append(new_logical)    
+        #print(self.logical_list)
     def undo_all(self):
         self.draw_board()            
         
@@ -484,20 +484,37 @@ class Tic_Tac_Toe(object):
         #print(logical_position)
         self.board_status[logical_position[0]][logical_position[1]] = 0
         self.Minus_count()
+        print(self.draw_count)
 
     def redo(self):
-        if self.player_X_turns==False:
-            logical_position=self.give_logical()
-            winsound.PlaySound("click.wav", winsound.SND_ASYNC)
-            self.draw_O(logical_position)
-            self.player_X_turns= not self.player_X_turns
-            self.board_status[logical_position[0]][logical_position[1]] = -1
+        i=len(self.logical_list)
+        if self.draw_count<=i:
+            self.Count_draw()
+            print(self.draw_count)
+            if self.player_X_turns==False:
+                logical_position=self.give_logical()
+                winsound.PlaySound("click.wav", winsound.SND_ASYNC)
+                logical_position = np.array(logical_position)
+                # logical_position = grid value on the board
+                # grid_position = actual pixel values of the center of the grid
+                grid_position = self.convert_logical_to_grid_position(logical_position)
+                self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+                self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                self.player_X_turns= not self.player_X_turns
+                self.board_status[logical_position[0]][logical_position[1]] = -1
+            else:
+                logical_position=self.give_logical()
+                winsound.PlaySound("click.wav", winsound.SND_ASYNC)
+                logical_position = np.array(logical_position)
+                # logical_position = grid value on the board
+                # grid_position = actual pixel values of the center of the grid
+                grid_position = self.convert_logical_to_grid_position(logical_position)
+                self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+                self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
+                self.player_X_turns= not self.player_X_turns
+                self.board_status[logical_position[0]][logical_position[1]] = +1
         else:
-            logical_position=self.give_logical()
-            winsound.PlaySound("click.wav", winsound.SND_ASYNC)
-            self.draw_X(logical_position)
-            self.player_X_turns= not self.player_X_turns
-            self.board_status[logical_position[0]][logical_position[1]] = +1
+            return
 
     def show_numbers(self):        
         for i in range(len(self.logical_list)):
@@ -538,23 +555,25 @@ class Tic_Tac_Toe(object):
 
     def draw_O(self, logical_position):
         #self.save_logical_list(logical_position)
-        #self.save_logical_list(logical_position)
+        
+        self.save_logical_list(logical_position)
         logical_position = np.array(logical_position)
-
         # logical_position = grid value on the board
         # grid_position = actual pixel values of the center of the grid
         grid_position = self.convert_logical_to_grid_position(logical_position)
-        #self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.surface.blit(self.black,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
         self.Count_draw()
+        print(self.draw_count)
 
     def draw_X(self, logical_position):
         #self.save_logical_list(logical_position)
-        #self.save_logical_list(logical_position)
+        self.save_logical_list(logical_position)
         grid_position = self.convert_logical_to_grid_position(logical_position)
         self.surface.blit(self.white,(grid_position[0] - symbol_size,grid_position[1] - symbol_size))
-        #self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
+        self.save_grid(grid_position[0] - symbol_size,grid_position[1] - symbol_size)
         self.Count_draw()
+        print(self.draw_count)
 
     def display_gameover(self):
 
@@ -688,15 +707,15 @@ class Tic_Tac_Toe(object):
                     if not self.is_grid_occupied(logical_position):
                         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                         self.draw_X(logical_position)
-                        self.board_status[logical_position[0]][logical_position[1]] = -1
-                        #self.show_number()
+                        self.board_status[logical_position[0]][logical_position[1]] = -1                       
+                        self.show_number()
                         self.player_X_turns = not self.player_X_turns
                 else:
                     if not self.is_grid_occupied(logical_position):
                         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
                         self.draw_O(logical_position)
-                        self.board_status[logical_position[0]][logical_position[1]] = 1
-                        #self.show_number()
+                        self.board_status[logical_position[0]][logical_position[1]] = 1                      
+                        self.show_number()
                         self.player_X_turns = not self.player_X_turns
 
                 # Check if game is concluded
@@ -713,4 +732,4 @@ class Tic_Tac_Toe(object):
             return False
                 
 if __name__ == '__main__':
-    main()
+    main() 
