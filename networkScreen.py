@@ -67,8 +67,12 @@ class Network():
         self.label_my_defeat = Label(self.networkWindow, text='패배 :' + str(self.defeat_count))
         self.label_my_defeat.grid(row=5, column=0, columnspan=2)
 
-        self.label_my_defeat = Label(self.networkWindow, text='승률 :' + str(self.play_game_count / self.win_count * 100) + '%')
-        self.label_my_defeat.grid(row=6, column=0, columnspan=2)
+        if(self.win_count == 0):
+            self.win_rate = '0.0%'
+        else:
+            self.win_rate = str(self.play_game_count / self.win_count * 100) + '%'
+        self.label_my_win_rate = Label(self.networkWindow, text='승률 :' + self.win_rate)
+        self.label_my_win_rate.grid(row=6, column=0, columnspan=2)
 
         self.button_send = Button(self.networkWindow, text='방 생성', width=15, bg='blue', fg='white',
         command=lambda: self.create_room(self.user.display_name, self.user.uid))
