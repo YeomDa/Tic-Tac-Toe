@@ -73,7 +73,7 @@ def main():
     surface.fill(bg_color)
 
     play_game = Tic_Tac_Toe(surface)
-
+    #
     menu = Menu(surface)
     while True:
         run_game(surface, play_game, menu)
@@ -95,7 +95,11 @@ def main(title, user):
 
     play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
 
-    menu = Menu(surface)
+    if(network_game_title != None) :
+        menu = Network_Menu(surface)
+    else:
+        menu = Menu(surface)
+
     while True:
         run_game(surface, play_game, menu)
 
@@ -156,7 +160,6 @@ class Rule(object):
             if cnt >= 5:
                 return cnt
         return cnt
-
 
 class Omok(object):
     def __init__(self, surface):
@@ -322,7 +325,7 @@ class Menu(object):
         
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
-        #self.Change_Game = self.make_text(self.font, 'Change Game', blue, None, top-180,left)
+        self.Change_Game = self.make_text(self.font, 'Change Game', blue, None, top-180,left)
         self.undo_rect = self.make_text(self.font, 'Undo', blue, None, top - 150, left)
         self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
         self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
@@ -374,8 +377,8 @@ class Menu(object):
             game.redo()
         elif self.quit_rect.collidepoint(pos):
             self.terminate()
-    #    elif self.Change_Game.collidepoint(pos):
-    #        self.C_Game()
+        elif self.Change_Game.collidepoint(pos):
+            self.C_Game()
         return False
     
     def C_Game(self):
@@ -408,7 +411,86 @@ class Menu(object):
                         return
             
             pygame.display.update()
-            fps_clock.tick(fps)    
+            fps_clock.tick(fps)   
+
+class Network_Menu(object): #네트워크 대전일때의 메뉴
+
+    def __init__(self, surface):
+        self.font = pygame.font.Font('freesansbold.ttf', 20)
+        self.surface = surface
+        self.draw_menu()
+        
+    def draw_menu(self):
+        top, left = window_height - 30, window_width - 200
+        self.undo_rect = self.make_text(self.font, 'Undo', blue, None, top - 150, left)
+        self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
+        self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
+        self.show_rect = self.make_text(self.font, 'Hide Number  ', blue, None, top - 60, left)
+        self.quit_rect = self.make_text(self.font, 'Quit Game', blue, None, top, left)
+        
+    def show_msg(self, msg_id):
+        msg = {
+            empty : '                                    ',
+            black_stone: 'Black win!!!',
+            white_stone: 'White win!!!',
+            tie: 'Tie'
+        }
+        center_x = window_width - (window_width - board_width) // 2
+        self.make_text(self.font, msg[msg_id], black, bg_color, 30, center_x, 1)
+
+    def make_text(self, font, text, color, bgcolor, top, left, position = 0):
+        surf = font.render(text, False, color, bgcolor)
+        rect = surf.get_rect()
+        if position:
+            rect.center = (left, top)
+        else:    
+            rect.topleft = (left, top)
+        self.surface.blit(surf, rect)
+        return rect
+
+    def show_hide(self, game):
+        top, left = window_height - 90, window_width - 200
+        if game.is_show:
+            self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
+            game.hide_numbers()
+            game.is_show = False
+        else:
+            self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+            game.show_numbers()
+            game.is_show = True
+
+    def check_rect(self, pos, game):
+        #if self.new_rect.collidepoint(pos):
+        #    return True
+
+        if self.show_rect.collidepoint(pos):
+            self.show_hide(game)
+        elif self.undo_rect.collidepoint(pos):
+            game.undo()
+        elif self.uall_rect.collidepoint(pos):
+            game.undo_all()
+        elif self.redo_rect.collidepoint(pos):
+            game.redo()
+        elif self.quit_rect.collidepoint(pos):
+            self.terminate()
+        return False
+
+    def terminate(self):
+        pygame.quit()
+        sys.exit()
+
+    def is_continue(self, play_game):
+        while True:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self.terminate()
+                
+                elif event.type == MOUSEBUTTONUP:
+                    if (self.check_rect(event.pos, play_game)):
+                        return
+            
+            pygame.display.update()
+            fps_clock.tick(fps)             
 
 class Tic_Tac_Toe(object):
     # ------------------------------------------------------------------
@@ -417,7 +499,7 @@ class Tic_Tac_Toe(object):
 
     def __init__(self, surface, network_game_title=None, network_my_turn=None, user_info=None):
         self.board = [[0 for i in range(board_size)] for j in range(board_size)]
-        self.menu = Menu(surface)
+        #self.menu = Menu(surface)
         self.rule = Rule(self.board)
         self.surface = surface
         self.set_image_font()
@@ -442,6 +524,11 @@ class Tic_Tac_Toe(object):
         self.logical=0
 
         print('리스너 부착 진입 전')
+        if(network_game_title != None) :
+            self.menu = Network_Menu(surface)
+        else:
+            self.menu = Menu(surface)
+    
         #네트워크 대전이라면,
         if(network_game_title != None) :
             self.isHost = network_my_turn #첫 시작하는 사람은 호스트입니다
@@ -811,7 +898,6 @@ class Tic_Tac_Toe(object):
             u'play_game_count' : self.user_info.total,
             u'win_count' : self.user_info.tie
         }, merge=True)
-        
-                
+                    
 if __name__ == '__main__':
     main()
