@@ -451,7 +451,7 @@ class Tic_Tac_Toe(object):
             print('리스너 부착 진입')
             callback_done = threading.Event()
             def on_snapshot(doc_snapshot, changes, read_time):
-                print('현재 내 턴은? ->', self.network_my_turn)
+                #print('현재 내 턴은? ->', self.network_my_turn)
                 
                 for doc in doc_snapshot:
                     list = doc.to_dict()
@@ -460,7 +460,7 @@ class Tic_Tac_Toe(object):
                     landing_position_y = list.get('landing_position_y')
                     if(turn!=None and landing_position_x!=None and landing_position_y!=None) :
                         if(self.network_my_turn) :
-                            self.network_my_turn = False
+                            #self.network_my_turn = False
                             return
                         
                         logical_position = np.array([landing_position_x, landing_position_y], dtype=int)
