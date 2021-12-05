@@ -289,7 +289,7 @@ class Session() :
             self.sessionWindow.destroy() #세션 화면 종료
             if(self.mode == 'network_3'):    #3목
                 main.main(title, self.user)
-        #    else:              #5목
-        #        main.main()
+            else:                            #5목
+                main.main2(title,self.user)
         else :
             print('아직 도전자가 접속하지 않았습니다.')

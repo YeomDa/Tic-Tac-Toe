@@ -92,8 +92,33 @@ def main(title, user):
     surface = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption(user_info.nickname+"님의 N-mok game")
     surface.fill(bg_color)
-
+    
     play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
+
+    if(network_game_title != None) :
+        menu = Network_Menu(surface)
+    else:
+        menu = Menu(surface)
+
+    while True:
+        run_game(surface, play_game, menu)
+
+def main2(title, user):
+    user_info = User_Info(user)
+    network_game_title = title
+    #선공은 방장에게 우선 줍니다
+    if(user_info.nickname == title) :
+        network_my_turn = True
+    else :
+        network_my_turn = False
+
+    pygame.init()
+    surface = pygame.display.set_mode((window_width, window_height))
+    pygame.display.set_caption(user_info.nickname+"님의 N-mok game")
+    surface.fill(bg_color)
+
+    #play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
+    play_game = Omok(surface,surface)
 
     if(network_game_title != None) :
         menu = Network_Menu(surface)
@@ -160,162 +185,7 @@ class Rule(object):
             if cnt >= 5:
                 return cnt
         return cnt
-
-class Omok(object):
-    def __init__(self, surface):
-        self.board = [[0 for i in range(board_size)] for j in range(board_size)]
-        self.menu = Menu(surface)
-        self.rule = Rule(self.board)
-        self.surface = surface
-        self.pixel_coords = []
-        self.set_coords()
-        self.set_image_font()
-        self.is_show = True
-
-    def init_game(self):
-        self.turn  = black_stone
-        self.draw_board()
-        self.menu.show_msg(empty)
-        self.init_board()
-        self.coords = []
-        self.redos = []
-        self.id = 1
-        self.gameover = False
-
-    def set_image_font(self):
-        black_img = pygame.image.load('image/black.png')
-        white_img = pygame.image.load('image/white.png')
-        self.last_w_img = pygame.image.load('image/white_a.png')
-        self.last_b_img = pygame.image.load('image/black_a.png')
-        self.board_img = pygame.image.load('image/board.png')
-        self.font = pygame.font.Font("freesansbold.ttf", 14)
-        self.black_img = pygame.transform.scale(black_img, (grid_size, grid_size))
-        self.white_img = pygame.transform.scale(white_img, (grid_size, grid_size))
-
-    def init_board(self):
-        for y in range(board_size):
-            for x in range(board_size):
-                self.board[y][x] = 0
-
-    def draw_board(self):
-        self.surface.blit(self.board_img, (0, 0))
-
-    def draw_image(self, img_index, x, y):
-        img = [self.black_img, self.white_img, self.last_b_img, self.last_w_img]
-        self.surface.blit(img[img_index], (x, y))
-
-    def show_number(self, x, y, stone, number):
-        colors = [white, black, red, red]
-        color = colors[stone]
-        self.menu.make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
-
-    def hide_numbers(self):
-        for i in range(len(self.coords)):
-            x, y = self.coords[i]
-            self.draw_image(i % 2, x, y)
-        if self.coords:
-            x, y = self.coords[-1]
-            self.draw_image(i % 2 + 2, x, y)
-
-    def show_numbers(self):
-        for i in range(len(self.coords)):
-            x, y = self.coords[i]
-            self.show_number(x, y, i % 2, i + 1)
-        if self.coords:
-            x, y = self.coords[-1]
-            self.draw_image(i % 2, x, y)
-            self.show_number(x, y, i % 2 + 2, i + 1)
-
-    def draw_stone(self, coord, stone, increase):
-        x, y = self.get_point(coord)
-        self.board[y][x] = stone
-        self.hide_numbers()
-        if self.is_show:
-            self.show_numbers()
-        self.id += increase
-        self.turn = 3 - self.turn
-        
-    def undo(self):
-        if not self.coords:
-            return            
-        self.draw_board()
-        coord = self.coords.pop()
-        self.redos.append(coord)
-        self.draw_stone(coord, empty, -1)
-
-    def undo_all(self):
-        if not self.coords:
-            return
-        self.id = 1
-        self.turn  = black_stone
-        while self.coords:
-            coord = self.coords.pop()
-            self.redos.append(coord)
-        self.init_board()
-        self.draw_board()
-
-    def redo(self):
-        if not self.redos:
-            return
-        coord = self.redos.pop()
-        self.coords.append(coord)
-        self.draw_stone(coord, self.turn, 1)
-
-    def set_coords(self):
-        for y in range(board_size):
-            for x in range(board_size):
-                self.pixel_coords.append((x * grid_size + 25, y * grid_size + 25))
-
-    def get_coord(self, pos):
-        for coord in self.pixel_coords:
-            x, y = coord
-            rect = pygame.Rect(x, y, grid_size, grid_size)
-            if rect.collidepoint(pos):
-                return coord
-        return None
-
-    def get_point(self, coord):
-        x, y = coord
-        x = (x - 25) // grid_size
-        y = (y - 25) // grid_size
-        return x, y
-                                 
-    def check_board(self, pos):
-        coord = self.get_coord(pos)
-        if not coord:
-            return False
-        x, y = self.get_point(coord)
-        if self.board[y][x] != empty:
-            return True
-
-        self.coords.append(coord)
-        self.draw_stone(coord, self.turn, 1)
-        if self.check_gameover(coord, 3 - self.turn):
-            self.gameover = True
-        if len(self.redos):
-            self.redos = []
-        return True
-
-    def check_gameover(self, coord, stone):
-        x, y = self.get_point(coord)
-        if self.id > board_size * board_size:
-            self.show_winner_msg(stone)
-            return True
-        elif 5 <= self.rule.is_gameover(x, y, stone):
-            self.show_winner_msg(stone)
-            return True
-        return False
-
-    def show_winner_msg(self, stone):
-        for i in range(3):
-            self.menu.show_msg(stone)
-            pygame.display.update()
-            pygame.time.delay(200)
-            self.menu.show_msg(empty)
-            pygame.display.update()
-            pygame.time.delay(200)
-        self.menu.show_msg(stone)
-        
+       
 class Menu(object):
 
     def __init__(self, surface):
@@ -563,7 +433,6 @@ class Tic_Tac_Toe(object):
             doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(network_game_title).document(u'game_log')
             doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
         
-
     def init_game(self):
         self.turn  = black_stone
         self.draw_board()
@@ -614,16 +483,13 @@ class Tic_Tac_Toe(object):
         self.draw_board()
         print(self.draw_count)
         self.player_X_turns=self.player_X_starts
-        
-            
+                 
     def undo(self):
         self.surface.blit(self.small_board,(self.give_x_grid(),self.give_y_grid()))
         self.player_X_turns= not self.player_X_turns
         logical_position=self.give_logical()
         #print(logical_position)
-        self.board_status[logical_position[0]][logical_position[1]] = 0
-        
-        
+        self.board_status[logical_position[0]][logical_position[1]] = 0  
 
     def redo(self):
         if self.player_X_turns==False:
@@ -637,7 +503,6 @@ class Tic_Tac_Toe(object):
             self.player_X_turns= not self.player_X_turns
             self.board_status[logical_position[0]][logical_position[1]] = +1
             
-
     #def show_hide(self)
     def play_again(self):
         self.initialize_board()
@@ -697,7 +562,6 @@ class Tic_Tac_Toe(object):
 
         score_text = 'Click to play again \n'
 
-
     # ------------------------------------------------------------------
     # Logical Functions:
     # The modules required to carry out game logic
@@ -716,7 +580,6 @@ class Tic_Tac_Toe(object):
             return False
         else:
             return True
-
 
     def is_winner(self, player):
 
@@ -823,8 +686,7 @@ class Tic_Tac_Toe(object):
             self.gameover = self.is_gameover()
             if (self.gameover):
                 self.display_gameover()
-            
-    
+             
     def landing_black(self,logical_position) :
         print('흑돌 착수')
         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
@@ -898,6 +760,166 @@ class Tic_Tac_Toe(object):
             u'play_game_count' : self.user_info.total,
             u'win_count' : self.user_info.tie
         }, merge=True)
-                    
+
+class Omok(object):
+    def __init__(self, surface,network_game_title=None,network_my_turn=None,user_info=None):
+        self.board = [[0 for i in range(board_size)] for j in range(board_size)]
+        #self.menu = Menu(surface)
+        self.rule = Rule(self.board)
+        self.surface = surface
+        self.pixel_coords = []
+        self.set_coords()
+        self.set_image_font()
+        self.is_show = True
+        
+        if(network_game_title != None):
+            self.menu = Network_Menu(surface)
+        else:
+            self.menu = Menu(surface)
+
+    def init_game(self):
+        self.turn  = black_stone
+        self.draw_board()
+        self.menu.show_msg(empty)
+        self.init_board()
+        self.coords = []
+        self.redos = []
+        self.id = 1
+        self.gameover = False
+
+    def set_image_font(self):
+        black_img = pygame.image.load('image/black.png')
+        white_img = pygame.image.load('image/white.png')
+        self.last_w_img = pygame.image.load('image/white_a.png')
+        self.last_b_img = pygame.image.load('image/black_a.png')
+        self.board_img = pygame.image.load('image/board.png')
+        self.font = pygame.font.Font("freesansbold.ttf", 14)
+        self.black_img = pygame.transform.scale(black_img, (grid_size, grid_size))
+        self.white_img = pygame.transform.scale(white_img, (grid_size, grid_size))
+
+    def init_board(self):
+        for y in range(board_size):
+            for x in range(board_size):
+                self.board[y][x] = 0
+
+    def draw_board(self):
+        self.surface.blit(self.board_img, (0, 0))
+
+    def draw_image(self, img_index, x, y):
+        img = [self.black_img, self.white_img, self.last_b_img, self.last_w_img]
+        self.surface.blit(img[img_index], (x, y))
+
+    def show_number(self, x, y, stone, number):
+        colors = [white, black, red, red]
+        color = colors[stone]
+        self.menu.make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
+
+    def hide_numbers(self):
+        for i in range(len(self.coords)):
+            x, y = self.coords[i]
+            self.draw_image(i % 2, x, y)
+        if self.coords:
+            x, y = self.coords[-1]
+            self.draw_image(i % 2 + 2, x, y)
+
+    def show_numbers(self):
+        for i in range(len(self.coords)):
+            x, y = self.coords[i]
+            self.show_number(x, y, i % 2, i + 1)
+        if self.coords:
+            x, y = self.coords[-1]
+            self.draw_image(i % 2, x, y)
+            self.show_number(x, y, i % 2 + 2, i + 1)
+
+    def draw_stone(self, coord, stone, increase):
+        x, y = self.get_point(coord)
+        self.board[y][x] = stone
+        self.hide_numbers()
+        if self.is_show:
+            self.show_numbers()
+        self.id += increase
+        self.turn = 3 - self.turn
+        
+    def undo(self):
+        if not self.coords:
+            return            
+        self.draw_board()
+        coord = self.coords.pop()
+        self.redos.append(coord)
+        self.draw_stone(coord, empty, -1)
+
+    def undo_all(self):
+        if not self.coords:
+            return
+        self.id = 1
+        self.turn  = black_stone
+        while self.coords:
+            coord = self.coords.pop()
+            self.redos.append(coord)
+        self.init_board()
+        self.draw_board()
+
+    def redo(self):
+        if not self.redos:
+            return
+        coord = self.redos.pop()
+        self.coords.append(coord)
+        self.draw_stone(coord, self.turn, 1)
+
+    def set_coords(self):
+        for y in range(board_size):
+            for x in range(board_size):
+                self.pixel_coords.append((x * grid_size + 25, y * grid_size + 25))
+
+    def get_coord(self, pos):
+        for coord in self.pixel_coords:
+            x, y = coord
+            rect = pygame.Rect(x, y, grid_size, grid_size)
+            if rect.collidepoint(pos):
+                return coord
+        return None
+
+    def get_point(self, coord):
+        x, y = coord
+        x = (x - 25) // grid_size
+        y = (y - 25) // grid_size
+        return x, y
+                                 
+    def check_board(self, pos):
+        coord = self.get_coord(pos)
+        if not coord:
+            return False
+        x, y = self.get_point(coord)
+        if self.board[y][x] != empty:
+            return True
+
+        self.coords.append(coord)
+        self.draw_stone(coord, self.turn, 1)
+        if self.check_gameover(coord, 3 - self.turn):
+            self.gameover = True
+        if len(self.redos):
+            self.redos = []
+        return True
+
+    def check_gameover(self, coord, stone):
+        x, y = self.get_point(coord)
+        if self.id > board_size * board_size:
+            self.show_winner_msg(stone)
+            return True
+        elif 5 <= self.rule.is_gameover(x, y, stone):
+            self.show_winner_msg(stone)
+            return True
+        return False
+
+    def show_winner_msg(self, stone):
+        for i in range(3):
+            self.menu.show_msg(stone)
+            pygame.display.update()
+            pygame.time.delay(200)
+            self.menu.show_msg(empty)
+            pygame.display.update()
+            pygame.time.delay(200)
+        self.menu.show_msg(stone) 
+
 if __name__ == '__main__':
     main()
