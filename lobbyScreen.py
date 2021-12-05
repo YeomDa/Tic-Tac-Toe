@@ -44,6 +44,9 @@ class Lobby() :
 
         elif mode == 'network_5' :
             print('network_5 모드를 선택하였습니다.')
+            self.lobbyWindow.destroy()
+            network_screen = networkScreen.Network(self.user,mode)
+            network_screen.run()
 
         elif mode == 'local_3' :
             print('local_3 모드를 선택하였습니다.')

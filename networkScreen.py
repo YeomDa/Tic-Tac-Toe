@@ -28,19 +28,33 @@ class Network():
         doc = doc_ref.get()
         #해당 경로가 존재한다면,
         if doc.exists:
-            data_list = doc.to_dict()
-            self.play_game_count = data_list.get('play_game_count') #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
-            self.win_count = data_list.get('win_count')
-            self.tie_count = data_list.get('tie_count')
-            self.defeat_count = data_list.get('defeat_count')
-            print(f'전적 : {data_list}') #해당 경로의 모든 데이터를 출력합니다
+            if(self.mode == 'network_3'): #3목네트워크일때
+                data_list = doc.to_dict()
+                self.play_game_count = data_list.get('play_game_count') #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
+                self.win_count = data_list.get('win_count')
+                self.tie_count = data_list.get('tie_count')
+                self.defeat_count = data_list.get('defeat_count')
+                print(f'전적 : {data_list}') #해당 경로의 모든 데이터를 출력합니다
+            else:  #5목일때
+                data_list = doc.to_dict()
+                self.play_omokgame_count = data_list.get('play_omokgame_count') #경로의 데이터를 list화 시키고, 'play_omokgame_count'의 값을 가져옵니다.
+                self.omokwin_count = data_list.get('omokwin_count')
+                self.omoktie_count = data_list.get('omoktie_count')
+                self.omokdefeat_count = data_list.get('omokdefeat_count')
+                print(f'전적 : {data_list}') #해당 경로의 모든 데이터를 출력합니다
         else:
             print(u'No such document!')
         
-        if(self.play_game_count == None) : self.play_game_count = 0
-        if(self.win_count == None) : self.win_count = 0
-        if(self.tie_count == None) : self.tie_count = 0
-        if(self.defeat_count == None) : self.defeat_count = 0
+        if(self.mode == 'network_3'):
+            if(self.play_game_count == None) : self.play_game_count = 0
+            if(self.win_count == None) : self.win_count = 0
+            if(self.tie_count == None) : self.tie_count = 0
+            if(self.defeat_count == None) : self.defeat_count = 0
+        else:
+            if(self.play_omokgame_count == None) : self.play_omkgame_count = 0
+            if(self.omokwin_count == None) : self.omokwin_count = 0
+            if(self.omoktie_count == None) : self.omoktie_count = 0
+            if(self.omokdefeat_count == None) : self.omokdefeat_count = 0
 
     def setWindow(self):
         self.networkWindow = Tk()
@@ -75,7 +89,50 @@ class Network():
         self.label_my_win_rate.grid(row=6, column=0, columnspan=2)
 
         self.button_send = Button(self.networkWindow, text='방 생성', width=15, bg='blue', fg='white',
-        command=lambda: self.create_room(self.user.display_name, self.user.uid))
+        command=lambda: self.create_room(self.user.display_name, self.user.uid,'network_3'))
+        self.button_send.grid(row=7, column=0, columnspan=2, pady=10)
+
+        self.entry_room_name = Entry(self.networkWindow, width=20)
+        self.entry_room_name.grid(row=8, column=0, pady=10)
+
+        self.button_game_start = Button(self.networkWindow, text='방 입장', bg='blue', fg='white',
+        command=lambda: self.enter_room(self.entry_room_name.get()))
+        self.button_game_start.grid(row=8,column=1, pady=10)
+
+    def setWindow_Omok(self):
+        self.networkWindow = Tk()
+        self.networkWindow.title('네트워크 5목')
+        self.networkWindow.geometry('250x300')
+
+        self.label_info = Label(self.networkWindow, text='네트워크 대전 로비 화면', height=2)
+        info_font = tkFont.Font(family="Arial", size=16, weight="bold")
+        self.label_info.configure(font=info_font)
+        self.label_info.grid(row=0, column=0, columnspan=2)
+
+        self.label_my_total = Label(self.networkWindow, text='닉네임 : ' + self.user.display_name)
+        self.label_my_total.grid(row=1, column=0, columnspan=2)
+
+        self.label_my_total_play = Label(self.networkWindow, text='총 게임 수 :' + str(self.play_omokgame_count))
+        self.label_my_total_play.grid(row=2, column=0, columnspan=2)
+
+        self.label_my_win = Label(self.networkWindow, text='승리 :' + str(self.omokwin_count))
+        self.label_my_win.grid(row=3, column=0, columnspan=2)
+
+        self.label_my_tie = Label(self.networkWindow, text='무승부 :' + str(self.omoktie_count))
+        self.label_my_tie.grid(row=4, column=0, columnspan=2)
+
+        self.label_my_defeat = Label(self.networkWindow, text='패배 :' + str(self.omokdefeat_count))
+        self.label_my_defeat.grid(row=5, column=0, columnspan=2)
+
+        if(self.omokwin_count == 0):
+            self.omokwin_rate = '0.0%'
+        else:
+            self.omokwin_rate = str(self.play_omokgame_count / self.omokwin_count * 100) + '%'
+        self.label_my_win_rate = Label(self.networkWindow, text='승률 :' + self.omokwin_rate)
+        self.label_my_win_rate.grid(row=6, column=0, columnspan=2)
+
+        self.button_send = Button(self.networkWindow, text='방 생성', width=15, bg='blue', fg='white',
+        command=lambda: self.create_room(self.user.display_name, self.user.uid,'network_5'))
         self.button_send.grid(row=7, column=0, columnspan=2, pady=10)
 
         self.entry_room_name = Entry(self.networkWindow, width=20)
@@ -86,10 +143,16 @@ class Network():
         self.button_game_start.grid(row=8,column=1, pady=10)
 
     def run(self):
-        self.setWindow()
-        self.networkWindow.mainloop()
+        if(self.mode == 'network_3') :
+            print('네트워크 3목 게임을 실행합니다.')
+            self.setWindow()
+            self.networkWindow.mainloop()
+        else:
+            print('네트워크 5목 게임을 실행합니다.')
+            self.setWindow_Omok()
+            self.networkWindow.mainloop()
     
-    def create_room(self, title, uid):
+    def create_room(self, title, uid,mode):
         db_ref = self.db.collection(u'game_server').document('sessions').collection(title)
         if(db_ref.document('game_start').get().exists):
             self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').update({
@@ -117,7 +180,7 @@ class Network():
         }, merge=True)
 
         self.networkWindow.destroy() #로비 화면 종료
-        session_screen = sessionScreen.Session(self.user, title, True)
+        session_screen = sessionScreen.Session(self.user, title, True, mode)
         session_screen.mainloop()
 
     def enter_room(self, title):
@@ -130,6 +193,7 @@ class Network():
 
         print('입장 :',title)
 
+    """
     def game_start(self):
         if(self.mode == 'network_3') :
             print('네트워크 3목 게임을 실행합니다.')
@@ -141,3 +205,4 @@ class Network():
             #main.Tic_Tac_Toe.mainloop()
         else :
             print('네트워크 설정 화면에서 게임 실행 시 잘못된 모드 매개변수가 전달되었습니다.')
+    """
