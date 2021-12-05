@@ -7,6 +7,7 @@ from firebase_admin import firestore
 import winsound
 import time
 import threading
+import lobbyScreen
 
 board_size = 15
 empty = 0
@@ -96,7 +97,7 @@ def main(title, user):
     play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
 
     if(network_game_title != None) :
-        menu = Network_Menu(surface)
+        menu = Network_Menu(surface,user)
     else:
         menu = Menu(surface)
 
@@ -285,9 +286,10 @@ class Menu(object):
 
 class Network_Menu(object): #네트워크 대전일때의 메뉴
 
-    def __init__(self, surface):
+    def __init__(self, surface,user):
         self.font = pygame.font.Font('freesansbold.ttf', 20)
         self.surface = surface
+        self.user = user
         self.draw_menu()
         
     def draw_menu(self):
@@ -296,6 +298,7 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
         self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
         self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
         self.show_rect = self.make_text(self.font, 'Hide Number  ', blue, None, top - 60, left)
+        self.goto_rect = self.make_text(self.font, 'go Lobby', blue, None, top -30, left)
         self.quit_rect = self.make_text(self.font, 'Quit Game', blue, None, top, left)
         
     def show_msg(self, msg_id):
@@ -341,9 +344,18 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
             game.undo_all()
         elif self.redo_rect.collidepoint(pos):
             game.redo()
+        elif self.goto_rect.collidepoint(pos):
+            self.gotoLobby(self.user)
         elif self.quit_rect.collidepoint(pos):
             self.terminate()
         return False
+
+    def gotoLobby(self,user):
+        #self.user = user
+        pygame.quit()
+        
+        lobby = lobbyScreen.Lobby(user)
+        lobby.mainloop()
 
     def terminate(self):
         pygame.quit()
@@ -351,11 +363,11 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
 
     def is_continue(self, play_game):
         while True:
-            for event in pygame.event.get():
+            for event in pygame.event.get():   
                 if event.type == QUIT:
                     self.terminate()
                 
-                elif event.type == MOUSEBUTTONUP:
+                elif event.type == MOUSEBUTTONUP:     
                     if (self.check_rect(event.pos, play_game)):
                         return
             
@@ -395,7 +407,7 @@ class Tic_Tac_Toe(object):
 
         print('리스너 부착 진입 전')
         if(network_game_title != None) :
-            self.menu = Network_Menu(surface)
+            self.menu = Network_Menu(surface,user=None)
         else:
             self.menu = Menu(surface)
     

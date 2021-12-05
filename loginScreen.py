@@ -3,7 +3,7 @@ import tkinter
 import firebase_admin
 from firebase_admin import credentials, auth
 from firebase_admin import firestore
-import networkScreen
+#import networkScreen
 import lobbyScreen
 
 cred = credentials.Certificate("firebase/opensw-team1-firebase-adminsdk-ln99u-734bf11a84.json")
