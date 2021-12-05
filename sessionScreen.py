@@ -101,24 +101,24 @@ class Session() :
             self.label_guest = Label(self.sessionWindow, text='도전자')
             self.label_guest.grid(row=0, column=1)
         else:
-            self.label_my_omoktotal_play = Label(self.sessionWindow, text='총 게임 수 :' + str(self.play_omokgame_count))
-            self.label_my_omoktotal_play.grid(row=2, column=my_column)
+            self.label_my_total_play = Label(self.sessionWindow, text='총 게임 수 :' + str(self.play_omokgame_count))
+            self.label_my_total_play.grid(row=2, column=my_column)
 
-            self.label_myomok_win = Label(self.sessionWindow, text='승리 :' + str(self.omokwin_count))
-            self.label_my_winomok.grid(row=3, column=my_column)
+            self.label_my_win = Label(self.sessionWindow, text='승리 :' + str(self.omokwin_count))
+            self.label_my_win.grid(row=3, column=my_column)
 
-            self.label_myomok_tie = Label(self.sessionWindow, text='무승부 :' + str(self.omoktie_count))
-            self.label_myomok_tie.grid(row=4, column=my_column)
+            self.label_my_tie = Label(self.sessionWindow, text='무승부 :' + str(self.omoktie_count))
+            self.label_my_tie.grid(row=4, column=my_column)
 
-            self.label_myomok_defeat = Label(self.sessionWindow, text='패배 :' + str(self.omokdefeat_count))
-            self.label_myomok_defeat.grid(row=5, column=my_column)
+            self.label_my_defeat = Label(self.sessionWindow, text='패배 :' + str(self.omokdefeat_count))
+            self.label_my_defeat.grid(row=5, column=my_column)
 
             if(self.omokwin_count == 0):
                 self.omokwin_rate = '0.0%'
             else:
                 self.omokwin_rate = str(self.play_omokgame_count / self.omokwin_count * 100) + '%'
-            self.label_myomok_win_rate = Label(self.sessionWindow, text='승률 :' + self.omokwin_rate)
-            self.label_myomok_win_rate.grid(row=6, column=my_column)
+            self.label_my_win_rate = Label(self.sessionWindow, text='승률 :' + self.omokwin_rate)
+            self.label_my_win_rate.grid(row=6, column=my_column)
 
             self.label_guest = Label(self.sessionWindow, text='도전자')
             self.label_guest.grid(row=0, column=1)
@@ -199,10 +199,10 @@ class Session() :
                                 print(f'상대 전적 : {host_data_list}') #해당 경로의 모든 데이터를 출력합니다
                             else:
                                 host_data_list = doc_host.to_dict()
-                                host_play_omokgame_count = host_data_list.get('play_omokgame_count') #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
-                                host_omokwin_count = host_data_list.get('omokwin_count')
-                                host_omoktie_count = host_data_list.get('omoktie_count')
-                                host_omokdefeat_count = host_data_list.get('omokdefeat_count')
+                                host_play_game_count = host_data_list.get('play_omokgame_count') #경로의 데이터를 list화 시키고, 'play_game_count'의 값을 가져옵니다.
+                                host_win_count = host_data_list.get('omokwin_count')
+                                host_tie_count = host_data_list.get('omoktie_count')
+                                host_defeat_count = host_data_list.get('omokdefeat_count')
                                 print(f'상대 전적 : {host_data_list}') #해당 경로의 모든 데이터를 출력합니다
                         else:
                             print(u'No such document!')
@@ -213,10 +213,10 @@ class Session() :
                             if(host_tie_count == None) : host_tie_count = 0
                             if(host_defeat_count == None) : host_defeat_count = 0
                         else:
-                            if(host_play_omokgame_count == None) : host_play_omokgame_count = 0
-                            if(host_omokwin_count == None) : host_omokwin_count = 0
-                            if(host_omoktie_count == None) : host_omoktie_count = 0
-                            if(host_omokdefeat_count == None) : host_omokdefeat_count = 0
+                            if(host_play_game_count == None) : host_play_game_count = 0
+                            if(host_win_count == None) : host_win_count = 0
+                            if(host_tie_count == None) : host_tie_count = 0
+                            if(host_defeat_count == None) : host_defeat_count = 0
                         
                         label_host_total_play = Label(self.sessionWindow, text='총 게임 수 :' + str(host_play_game_count))
                         label_host_total_play.grid(row=2, column=0)
@@ -234,6 +234,7 @@ class Session() :
                             host_win_rate = '0.0%'
                         else:
                             host_win_rate = str(host_play_game_count / host_win_count * 100) + '%'
+
                         guest_label_host_defeat = Label(self.sessionWindow, text='승률 :' + host_win_rate)
                         guest_label_host_defeat.grid(row=6, column=0)
 
@@ -286,6 +287,9 @@ class Session() :
             }, merge=True)
 
             self.sessionWindow.destroy() #세션 화면 종료
-            main.main(title, self.user)
+            if(self.mode == 'network_3'):    #3목
+                main.main(title, self.user)
+        #    else:              #5목
+        #        main.main()
         else :
             print('아직 도전자가 접속하지 않았습니다.')
