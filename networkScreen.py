@@ -84,7 +84,7 @@ class Network():
         if(self.win_count == 0):
             self.win_rate = '0.0%'
         else:
-            self.win_rate = str(self.play_game_count / self.win_count * 100) + '%'
+            self.win_rate = str(round(self.win_count / self.play_game_count * 100, 2)) + '%'
         self.label_my_win_rate = Label(self.networkWindow, text='승률 :' + self.win_rate)
         self.label_my_win_rate.grid(row=6, column=0, columnspan=2)
 
@@ -96,7 +96,7 @@ class Network():
         self.entry_room_name.grid(row=8, column=0, pady=10)
 
         self.button_game_start = Button(self.networkWindow, text='방 입장', bg='blue', fg='white',
-        command=lambda: self.enter_room(self.entry_room_name.get()))
+        command=lambda: self.enter_room(self.entry_room_name.get(), 'network_3'))
         self.button_game_start.grid(row=8,column=1, pady=10)
 
     def setWindow_Omok(self):
@@ -127,7 +127,7 @@ class Network():
         if(self.omokwin_count == 0):
             self.omokwin_rate = '0.0%'
         else:
-            self.omokwin_rate = str(self.play_omokgame_count / self.omokwin_count * 100) + '%'
+            self.omokwin_rate = str(round(self.omokwin_count / self.play_omokgame_count * 100, 2)) + '%'
         self.label_my_win_rate = Label(self.networkWindow, text='승률 :' + self.omokwin_rate)
         self.label_my_win_rate.grid(row=6, column=0, columnspan=2)
 
@@ -139,7 +139,7 @@ class Network():
         self.entry_room_name.grid(row=8, column=0, pady=10)
 
         self.button_game_start = Button(self.networkWindow, text='방 입장', bg='blue', fg='white',
-        command=lambda: self.enter_room(self.entry_room_name.get()))
+        command=lambda: self.enter_room(self.entry_room_name.get(), 'network_5'))
         self.button_game_start.grid(row=8,column=1, pady=10)
 
     def run(self):
@@ -183,12 +183,12 @@ class Network():
         session_screen = sessionScreen.Session(self.user, title, True, mode)
         session_screen.mainloop()
 
-    def enter_room(self, title):
+    def enter_room(self, title, mode):
         db_ref = self.db.collection(u'game_server').document(u'sessions').collection(title)
         doc = db_ref.get()
         if(bool(doc)):
             self.networkWindow.destroy() #로비 화면 종료
-            session_screen = sessionScreen.Session(self.user, title, False)
+            session_screen = sessionScreen.Session(self.user, title, False, mode)
             session_screen.mainloop()
 
         print('입장 :',title)

@@ -94,7 +94,7 @@ class Session() :
             if(self.win_count == 0):
                 self.win_rate = '0.0%'
             else:
-                self.win_rate = str(self.play_game_count / self.win_count * 100) + '%'
+                self.win_rate = str(round(self.win_count / self.play_game_count * 100, 2)) + '%'
             self.label_my_win_rate = Label(self.sessionWindow, text='승률 :' + self.win_rate)
             self.label_my_win_rate.grid(row=6, column=my_column)
 
@@ -116,7 +116,7 @@ class Session() :
             if(self.omokwin_count == 0):
                 self.omokwin_rate = '0.0%'
             else:
-                self.omokwin_rate = str(self.play_omokgame_count / self.omokwin_count * 100) + '%'
+                self.omokwin_rate = str(round(self.omokwin_count / self.play_omokgame_count * 100, 2)) + '%'
             self.label_my_win_rate = Label(self.sessionWindow, text='승률 :' + self.omokwin_rate)
             self.label_my_win_rate.grid(row=6, column=my_column)
 
@@ -168,7 +168,7 @@ class Session() :
                         if(guest_win_count == 0):
                             guest_win_rate = '0.0%'
                         else:
-                            guest_win_rate = str(guest_play_game_count / guest_win_count * 100) + '%'
+                            guest_win_rate = str(round(guest_win_count / guest_play_game_count * 100, 2)) + '%'
                         guest_label_guest_win_rate = Label(self.sessionWindow, text='승률 :' + guest_win_rate)
                         guest_label_guest_win_rate.grid(row=6, column=1)
 
@@ -233,7 +233,7 @@ class Session() :
                         if(host_win_count == 0):
                             host_win_rate = '0.0%'
                         else:
-                            host_win_rate = str(host_play_game_count / host_win_count * 100) + '%'
+                            host_win_rate = str(round(host_win_count / host_play_game_count * 100, 2)) + '%'
 
                         guest_label_host_defeat = Label(self.sessionWindow, text='승률 :' + host_win_rate)
                         guest_label_host_defeat.grid(row=6, column=0)
