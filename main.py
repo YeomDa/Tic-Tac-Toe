@@ -808,6 +808,10 @@ class Tic_Tac_Toe(object):
             self.display_gameover()
 
     def check_board(self, event):
+        if(self.network_my_turn == False) :
+            print('내 턴이 아니므로 착수가 불가합니다.')
+            return
+            
         x=event[0]
         y=event[1]
         grid_position = [event[0], event[1]]
