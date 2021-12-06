@@ -278,18 +278,18 @@ class Session() :
             self.callback_done.set()
             self.sessionWindow.destroy() #세션 화면 종료
             main.main(title, self.user)
-
-        if(self.is_guest_join) :
-            print('게임 시작 가능')
-            
-            self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').set({
-                u'is_game_start' : True
-            }, merge=True)
-
-            self.sessionWindow.destroy() #세션 화면 종료
-            if(self.mode == 'network_3'):    #3목
-                main.main(title, self.user)
-            else:                            #5목
-                main.main2(title,self.user)
         else :
-            print('아직 도전자가 접속하지 않았습니다.')
+            if(self.is_guest_join) :
+                print('게임 시작 가능')
+                
+                self.db.collection(u'game_server').document('sessions').collection(title).document('game_start').set({
+                    u'is_game_start' : True
+                }, merge=True)
+
+                self.sessionWindow.destroy() #세션 화면 종료
+                if(self.mode == 'network_3'):    #3목
+                    main.main(title, self.user)
+                else:                            #5목
+                    main.main2(title,self.user)
+            else :
+                print('아직 도전자가 접속하지 않았습니다.')

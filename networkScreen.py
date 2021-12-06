@@ -80,7 +80,7 @@ class Network():
 
         self.label_my_defeat = Label(self.networkWindow, text='패배 :' + str(self.defeat_count))
         self.label_my_defeat.grid(row=5, column=0, columnspan=2)
-
+        
         if(self.win_count == 0):
             self.win_rate = '0.0%'
         else:
@@ -184,14 +184,13 @@ class Network():
         session_screen.mainloop()
 
     def enter_room(self, title, mode):
+        print('입장 :',title)
         db_ref = self.db.collection(u'game_server').document(u'sessions').collection(title)
         doc = db_ref.get()
         if(bool(doc)):
             self.networkWindow.destroy() #로비 화면 종료
             session_screen = sessionScreen.Session(self.user, title, False, mode)
             session_screen.mainloop()
-
-        print('입장 :',title)
 
     """
     def game_start(self):

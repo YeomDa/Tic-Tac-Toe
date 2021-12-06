@@ -1,6 +1,7 @@
 import pygame, sys
 from pygame.locals import *
 from tkinter import *
+from tkinter import messagebox
 import numpy as np
 import firebase_admin
 from firebase_admin import firestore
@@ -101,8 +102,7 @@ def main(title, user):
     else:
         menu = Menu(surface)
 
-    while True:
-        run_game(surface, play_game, menu)
+    run_game(surface, play_game, menu) #네트워크 게임은 1회성이므로 while문 없이 합니다.
 
 def main2(title, user):
     user_info = User_Info(user)
@@ -424,6 +424,7 @@ class Tic_Tac_Toe(object):
             self.network_game_title = network_game_title
             print('리스너 부착 진입')
             callback_done = threading.Event()
+            callback_done.daemon = True
             def on_snapshot(doc_snapshot, changes, read_time):
                 #print('현재 내 턴은? ->', self.network_my_turn)
                 
@@ -433,18 +434,19 @@ class Tic_Tac_Toe(object):
                     landing_position_x = list.get('landing_position_x')
                     landing_position_y = list.get('landing_position_y')
                     if(turn!=None and landing_position_x!=None and landing_position_y!=None) :
+                        if(self.network_my_turn == False) :
+                            logical_position = np.array([landing_position_x, landing_position_y], dtype=int)
+                            if(turn == 'Black') :
+                                self.landing_black(logical_position, True)
+                            else :
+                                self.landing_white(logical_position, True)
+                        
+                        #턴을 서로 바꿉니다.
                         if(self.network_my_turn) :
                             self.network_my_turn = False
-                            return
-                        
-                        logical_position = np.array([landing_position_x, landing_position_y], dtype=int)
-                        if(turn == 'Black') :
-                            self.landing_black(logical_position)
                         else :
-                            self.landing_white(logical_position)
-                        self.network_my_turn = True #상대방의 착수를 감지하고 적용하였으니, 이제 나의 턴입니다
-                            
-                callback_done.set()
+                            self.network_my_turn = True
+                            callback_done.set()
                 
             doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(network_game_title).document(u'game_log')
             doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
@@ -661,35 +663,51 @@ class Tic_Tac_Toe(object):
         print(self.draw_count)
 
     def display_gameover(self):
+        if(self.network_game_title != None) :
+            if self.X_wins:
+                if(self.isHost) :
+                    gameover_msg = "당신이 승리하였습니다.."
+                else :
+                    gameover_msg = "당신은 패배하였습니다.."
+            elif self.O_wins:
+                if(self.isHost) :
+                    gameover_msg = "당신은 패배하였습니다.."
+                else :
+                    gameover_msg = "당신이 승리하였습니다.."
+            else:
+                gameover_msg = "무승부 입니다."
 
-        if self.X_wins:
-            self.X_score += 1
-            self.menu.show_msg(2)
-            pygame.display.update()
-            pygame.time.delay(1000)
-            self.menu.show_msg(empty)
-            ##color = symbol_X_color
-        elif self.O_wins:
-            self.O_score += 1
-            self.menu.show_msg(1)
-            pygame.display.update()
-            pygame.time.delay(1000)
-            self.menu.show_msg(empty)
-            ##color = symbol_O_color
-        else:
-            self.tie_score += 1
-            self.menu.show_msg(tie)
-            pygame.display.update()
-            pygame.time.delay(1000)
-            self.menu.show_msg(empty)
+            messagebox.showinfo(self.user_info.nickname + "게임 종료", gameover_msg)
 
-        score_text = 'Player 1 (X) : ' + str(self.X_score) + '\n'
-        score_text += 'Player 2 (O): ' + str(self.O_score) + '\n'
-        score_text += 'Tie                    : ' + str(self.tie_score)
+        else :
+            if self.X_wins:
+                self.X_score += 1
+                self.menu.show_msg(2)
+                pygame.display.update()
+                pygame.time.delay(1000)
+                self.menu.show_msg(empty)
+                ##color = symbol_X_color
+            elif self.O_wins:
+                self.O_score += 1
+                self.menu.show_msg(1)
+                pygame.display.update()
+                pygame.time.delay(1000)
+                self.menu.show_msg(empty)
+                ##color = symbol_O_color
+            else:
+                self.tie_score += 1
+                self.menu.show_msg(tie)
+                pygame.display.update()
+                pygame.time.delay(1000)
+                self.menu.show_msg(empty)
 
-        self.reset_board = True
+            score_text = 'Player 1 (X) : ' + str(self.X_score) + '\n'
+            score_text += 'Player 2 (O): ' + str(self.O_score) + '\n'
+            score_text += 'Tie                    : ' + str(self.tie_score)
 
-        score_text = 'Click to play again \n'
+            self.reset_board = True
+
+            score_text = 'Click to play again \n'
 
     # ------------------------------------------------------------------
     # Logical Functions:
@@ -752,14 +770,32 @@ class Tic_Tac_Toe(object):
 
         if self.X_wins:
             print('X wins')
-            self.host_win()
+            if(self.network_game_title != None) :
+                if(self.isHost) :
+                    gameover_msg = "당신이 승리하였습니다.."
+                else :
+                    gameover_msg = "당신은 패배하였습니다.."
+                messagebox.showinfo(self.user_info.nickname + "게임 종료", gameover_msg)
+                self.host_win()
+                self.menu.terminate()
         elif self.O_wins:
             print('O wins')
-            self.guest_win()
+            if(self.network_game_title != None) :
+                if(self.isHost) :
+                    gameover_msg = "당신은 패배하였습니다.."
+                else :
+                    gameover_msg = "당신이 승리하였습니다.."
+                messagebox.showinfo(self.user_info.nickname + "게임 종료", gameover_msg)
+                self.guest_win()
+                self.menu.terminate()
         elif self.tie:
             print('Its a tie')
-            self.host_guest_tie()
-
+            if(self.network_game_title != None) :
+                gameover_msg = "무승부 입니다."
+                messagebox.showinfo(self.user_info.nickname + "게임 종료", gameover_msg)
+                self.host_guest_tie()
+                self.menu.terminate()
+            
         return gameover
 
     def time_over(self):
@@ -784,11 +820,11 @@ class Tic_Tac_Toe(object):
                 if self.player_X_turns:
                     if not self.is_grid_occupied(logical_position):
                         #백돌 착수
-                        self.landing_white(logical_position)
+                        self.landing_white(logical_position, False)
                 else:
                     if not self.is_grid_occupied(logical_position):
                         #흑돌 착수
-                        self.landing_black(logical_position)
+                        self.landing_black(logical_position, False)
                         
                 # Check if game is concluded
                 self.gameover = self.is_gameover()
@@ -801,7 +837,7 @@ class Tic_Tac_Toe(object):
         else:
             return False
     
-    def landing_white(self, logical_position) :
+    def landing_white(self, logical_position, from_listener) :
         print('백돌 착수')
         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
         self.draw_X(logical_position)
@@ -810,17 +846,20 @@ class Tic_Tac_Toe(object):
             self.show_number()
         self.player_X_turns = not self.player_X_turns
         if(self.network_game_title != None) :
-            self.network_landing_logging(False, logical_position)
-            if(self.network_my_turn == False):
+            if(self.network_my_turn == False and from_listener == True):
+                print('방금 착수한게 내가 아니다')
                 self.gameover = self.is_gameover()
                 if (self.gameover):
                     self.display_gameover()
+            else:
+                print('방금 착수한건 나다')
+                self.network_landing_logging(False, logical_position)
         else :
             self.gameover = self.is_gameover()
             if (self.gameover):
                 self.display_gameover()
              
-    def landing_black(self,logical_position) :
+    def landing_black(self,logical_position, from_listener) :
         print('흑돌 착수')
         winsound.PlaySound("click.wav", winsound.SND_ASYNC)
         self.draw_O(logical_position)
@@ -828,12 +867,15 @@ class Tic_Tac_Toe(object):
         if self.is_show==True:                   
             self.show_number()
         self.player_X_turns = not self.player_X_turns
-        if(self.network_game_title != None) :
-            self.network_landing_logging(True, logical_position)
-            if(self.network_my_turn == False):
+        if(self.network_game_title != None) : #네트워크 게임이면
+            if(self.network_my_turn == False and from_listener == True):
+                print('방금 착수한게 내가 아니다')
                 self.gameover = self.is_gameover()
                 if (self.gameover):
                     self.display_gameover()
+            else: #방금 착수한게 내가 아니라면?
+                print('방금 착수한건 나다')
+                self.network_landing_logging(True, logical_position)
         else :
             self.gameover = self.is_gameover()
             if (self.gameover):
@@ -905,7 +947,7 @@ class Omok(object):
         self.pixel_coords = []
         self.set_coords()
         self.set_image_font()
-        self.is_show = True
+        self.is_show = Trueㄹ
         
         if(network_game_title != None):
             self.menu = Network_Menu(surface)
