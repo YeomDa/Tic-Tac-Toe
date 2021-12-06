@@ -421,6 +421,7 @@ class Tic_Tac_Toe(object):
             self.db = firestore.client()
             self.user_info = user_info
             self.network_my_turn = network_my_turn
+            self.display_my_turn(self.network_my_turn)
             self.network_game_title = network_game_title
             print('리스너 부착 진입')
             callback_done = threading.Event()
@@ -446,7 +447,8 @@ class Tic_Tac_Toe(object):
                             self.network_my_turn = False
                         else :
                             self.network_my_turn = True
-                            callback_done.set()
+                        self.display_my_turn(self.network_my_turn)
+                        callback_done.set()
                 
             doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(network_game_title).document(u'game_log')
             doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
@@ -460,6 +462,13 @@ class Tic_Tac_Toe(object):
         ##self.redos = []
         self.id = 1
         self.gameover=False
+
+    def display_my_turn(self, turn):
+        self.menu.make_text(pygame.font.SysFont("휴먼고딕", 20), '               ', blue, white, 100, 550)
+        if(turn) :
+            self.menu.make_text(pygame.font.SysFont("휴먼고딕", 20), '당신의 턴입니다.', blue, None, 100, 550)
+        else :
+            self.menu.make_text(pygame.font.SysFont("휴먼고딕", 20), '상대의 턴입니다.', blue, None, 100, 550)
 
     def Count_draw(self):
         self.draw_count= self.draw_count+1
@@ -808,10 +817,10 @@ class Tic_Tac_Toe(object):
             self.display_gameover()
 
     def check_board(self, event):
-        if(self.network_my_turn == False) :
+        if(self.network_game_title != None and self.network_my_turn == False) :
             print('내 턴이 아니므로 착수가 불가합니다.')
             return
-            
+
         x=event[0]
         y=event[1]
         grid_position = [event[0], event[1]]
