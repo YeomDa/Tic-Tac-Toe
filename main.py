@@ -75,7 +75,6 @@ def main():
     surface.fill(bg_color)
 
     play_game = Tic_Tac_Toe(surface)
-    #
     menu = Menu(surface)
     while True:
         run_game(surface, play_game, menu)
@@ -118,11 +117,10 @@ def main2(title, user):
     pygame.display.set_caption(user_info.nickname+"님의 N-mok game")
     surface.fill(bg_color)
 
-    #play_game = Tic_Tac_Toe(surface, network_game_title, network_my_turn, user_info)
-    play_game = Omok(surface,surface)
+    play_game = Omok(surface,network_game_title,network_my_turn,user_info)
 
     if(network_game_title != None) :
-        menu = Network_Menu(surface)
+        menu = Network_Menu(surface,user)
     else:
         menu = Menu(surface)
 
@@ -294,9 +292,6 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
         
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
-        self.undo_rect = self.make_text(self.font, 'Undo', blue, None, top - 150, left)
-        self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
-        self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
         self.show_rect = self.make_text(self.font, 'Hide Number  ', blue, None, top - 60, left)
         self.goto_rect = self.make_text(self.font, 'go Lobby', blue, None, top -30, left)
         self.quit_rect = self.make_text(self.font, 'Quit Game', blue, None, top, left)
@@ -333,17 +328,8 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
             game.is_show = True
 
     def check_rect(self, pos, game):
-        #if self.new_rect.collidepoint(pos):
-        #    return True
-
         if self.show_rect.collidepoint(pos):
             self.show_hide(game)
-        elif self.undo_rect.collidepoint(pos):
-            game.undo()
-        elif self.uall_rect.collidepoint(pos):
-            game.undo_all()
-        elif self.redo_rect.collidepoint(pos):
-            game.redo()
         elif self.goto_rect.collidepoint(pos):
             self.gotoLobby(self.user)
         elif self.quit_rect.collidepoint(pos):
@@ -351,7 +337,6 @@ class Network_Menu(object): #네트워크 대전일때의 메뉴
         return False
 
     def gotoLobby(self,user):
-        #self.user = user
         pygame.quit()
         
         lobby = lobbyScreen.Lobby(user)
@@ -954,18 +939,52 @@ class Tic_Tac_Toe(object):
 class Omok(object):
     def __init__(self, surface,network_game_title=None,network_my_turn=None,user_info=None):
         self.board = [[0 for i in range(board_size)] for j in range(board_size)]
-        #self.menu = Menu(surface)
         self.rule = Rule(self.board)
         self.surface = surface
         self.pixel_coords = []
         self.set_coords()
         self.set_image_font()
-        self.is_show = Trueㄹ
+        self.is_show = True
         
         if(network_game_title != None):
-            self.menu = Network_Menu(surface)
+            self.menu = Network_Menu(surface, user = None)
         else:
             self.menu = Menu(surface)
+
+        print('리스너 부착 진입 전')
+    
+        #네트워크 대전이라면,
+        if(network_game_title != None) :
+            self.isHost = network_my_turn #첫 시작하는 사람은 호스트입니다
+            self.db = firestore.client()
+            self.user_info = user_info
+            self.network_my_turn = network_my_turn
+            self.network_game_title = network_game_title
+            print('리스너 부착 진입')
+            callback_done = threading.Event()
+            def on_snapshot(doc_snapshot, changes, read_time):
+                
+                for doc in doc_snapshot:
+                    list = doc.to_dict()
+                    turn = list.get('turn')
+                    landing_position_x = list.get('landing_position_x')
+                    landing_position_y = list.get('landing_position_y')
+                    if(turn!=None and landing_position_x!=None and landing_position_y!=None) :
+                        if(self.network_my_turn) :
+                            self.network_my_turn = False
+                            return
+                        
+                        logical_position = np.array([landing_position_x, landing_position_y], dtype=int)
+                        if(turn == 'Black') :
+                            self.landing_black(logical_position)
+                        else :
+                            self.landing_white(logical_position)
+                        self.network_my_turn = True #상대방의 착수를 감지하고 적용하였으니, 이제 나의 턴입니다
+                            
+                callback_done.set()
+                
+            doc_ref = self.db.collection(u'game_server').document(u'sessions').collection(network_game_title).document(u'game_log')
+            doc_watch = doc_ref.on_snapshot(on_snapshot) #이친구가 doc_ref경로의 데이터가 변경되면 on_snapshot 메서드를 실행합니다.
 
     def init_game(self):
         self.turn  = black_stone

@@ -4,7 +4,6 @@ import threading
 from firebase_admin import firestore
 import main
 import networkScreen
-import sessionScreen
 
 class Session() :
     def __init__(self, user, title, isHost,mode):
@@ -277,7 +276,10 @@ class Session() :
             self.doc_watch.unsubscribe()
             self.callback_done.set()
             self.sessionWindow.destroy() #세션 화면 종료
-            main.main(title, self.user)
+            if(self.mode == 'network_3'):
+                main.main(title, self.user)
+            else:
+                main.main2(title,self.user)
         else :
             if(self.is_guest_join) :
                 print('게임 시작 가능')
