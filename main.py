@@ -78,7 +78,7 @@ def l_main(a):
         play_game = Tic_Tac_Toe(surface)
     elif a==4:
         play_game = Omok(surface)
-        
+
     menu = Menu(surface)
     while True:
         run_game(surface, play_game, menu)
@@ -403,13 +403,13 @@ class Tic_Tac_Toe(object):
             self.menu = Network_Menu(surface,user=None)
         else:
             self.menu = Menu(surface)
-    
+        self.network_my_turn = network_my_turn
         #네트워크 대전이라면,
         if(network_game_title != None) :
             self.isHost = network_my_turn #첫 시작하는 사람은 호스트입니다
             self.db = firestore.client()
             self.user_info = user_info
-            self.network_my_turn = network_my_turn
+            
             self.display_my_turn(self.network_my_turn)
             self.network_game_title = network_game_title
             print('리스너 부착 진입')

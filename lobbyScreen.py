@@ -2,6 +2,7 @@ from tkinter import *
 import tkinter
 import firebase_admin
 import networkScreen
+import main
 
 class Lobby() :
     def __init__(self, user) :
@@ -57,5 +58,5 @@ class Lobby() :
             self.lobbyWindow.destroy()
             main.l_main(4)
         else :
-            print('게임모드 선택 매개변수가 잘못 전달되었습니다.'
+            print('게임모드 선택 매개변수가 잘못 전달되었습니다.')
         
