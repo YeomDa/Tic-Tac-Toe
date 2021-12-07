@@ -155,12 +155,6 @@ def run_game(surface, game, menu):
         pygame.display.update()
         fps_clock.tick(fps)
 
-def Get_game():
-    return Cha_game(current_game)
-
-def Cha_game(game):
-    game=not game
-    return game
 
 class Rule(object):
     def __init__(self, board):
@@ -197,7 +191,7 @@ class Menu(object):
         
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
-        self.Change_Game = self.make_text(self.font, 'Change Game', blue, None, top-180,left)
+
         self.undo_rect = self.make_text(self.font, 'Undo', blue, None, top - 150, left)
         self.uall_rect = self.make_text(self.font, 'Undo All', blue, None, top - 120, left)
         self.redo_rect = self.make_text(self.font, 'Redo', blue, None, top - 90, left)
@@ -250,24 +244,8 @@ class Menu(object):
             game.redo()
         elif self.quit_rect.collidepoint(pos):
             self.terminate()
-        elif self.Change_Game.collidepoint(pos):
-            self.C_Game()
-        return False
-    
-    def C_Game(self):
-        surface = pygame.display.set_mode((window_width, window_height))
-        if Get_game()==True:
-            play_game=Omok(surface)
-            menu = Menu(surface)
 
-            run_game(surface,Omok(surface),Menu(surface))
-            self.is_continue(play_game)
-        else :
-            play_game = Tic_Tac_Toe(surface)
-            menu = Menu(surface)
- 
-            run_game(surface,play_game,Menu(surface))
-            self.is_continue(play_game)
+        return False
 
     def terminate(self):
         pygame.quit()
