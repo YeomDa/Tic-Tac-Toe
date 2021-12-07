@@ -937,7 +937,7 @@ class Tic_Tac_Toe(object):
         self.user_info.tie += 1
         self.db.collection(u'user_info').document(self.user_info.uid).set({
             u'play_game_count' : self.user_info.total,
-            u'win_count' : self.user_info.tie
+            u'tie_count' : self.user_info.tie
         }, merge=True)
 
 class Omok(object):
