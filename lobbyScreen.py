@@ -50,10 +50,12 @@ class Lobby() :
 
         elif mode == 'local_3' :
             print('local_3 모드를 선택하였습니다.')
-
+            self.lobbyWindow.destroy()
+            main.l_main(3)
         elif mode == 'local_5' :
             print('local_5 모드를 선택하였습니다.')
-
+            self.lobbyWindow.destroy()
+            main.l_main(4)
         else :
-            print('게임모드 선택 매개변수가 잘못 전달되었습니다.')
+            print('게임모드 선택 매개변수가 잘못 전달되었습니다.'
         

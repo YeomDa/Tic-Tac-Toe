@@ -68,13 +68,17 @@ class User_Info():
             self.defeat = 0
             self.tie = 0
 
-def main():
+def l_main(a):
     pygame.init()
     surface = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("N-mok game")
     surface.fill(bg_color)
-
-    play_game = Tic_Tac_Toe(surface)
+    
+    if a==3:
+        play_game = Tic_Tac_Toe(surface)
+    elif a==4:
+        play_game = Omok(surface)
+        
     menu = Menu(surface)
     while True:
         run_game(surface, play_game, menu)
