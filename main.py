@@ -481,7 +481,8 @@ class Tic_Tac_Toe(object):
                 
         self.board_status = np.zeros(shape=(3, 3))
         self.draw_count = 0
-        
+        self.logical_list.clear()
+
     def save_grid(self, x_last, y_last):
         self.x_last_grid.append(x_last)
         self.y_last_grid.append(y_last)
